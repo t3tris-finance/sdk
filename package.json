@@ -1,0 +1,46 @@
+{
+  "name": "@t3tris/sdk",
+  "version": "0.1.0",
+  "description": "Typed client for the T3tris API (/v1) plus the on-chain action engine.",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./curate": "./src/curate/index.ts",
+    "./entities": "./src/entities/index.ts",
+    "./wallet": "./src/wallet/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "bun@1.4.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t3tris-finance/sdk.git"
+  },
+  "homepage": "https://github.com/t3tris-finance/sdk#readme",
+  "bugs": {
+    "url": "https://github.com/t3tris-finance/sdk/issues"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "build": "bun scripts/build.ts",
+    "pack": "bun scripts/pack.ts",
+    "smoke": "bun scripts/smoke.ts",
+    "test": "bun test test"
+  },
+  "dependencies": {
+    "viem": "^2.56.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.12",
+    "@types/bun": "1.4.1",
+    "typescript": "5.9.3"
+  }
+}

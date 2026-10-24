@@ -1,0 +1,76 @@
+name: Publish
+
+# Publishes @t3tris/sdk to npmjs after a merge to main.
+#
+# DISABLED. The job condition is hard-off, so a merge cannot publish.
+# npmjs credentials are not configured, the staged manifest stays private,
+# and the package has no license. Enable only in a reviewed change, after
+# the checklist in README.md ("Publishing").
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to npmjs (disabled)
+    # Keep this false until publishing is explicitly approved.
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.0"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Test
+        run: bun run test
+
+      - name: Pack
+        run: bun run smoke
+
+      - name: Refuse a private or unlicensed package
+        working-directory: .pack
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFileSync } from "node:fs";
+          const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+          const errors = [];
+          if (pkg.private !== false) {
+            errors.push("staged package is private; set private: false in scripts/pack.ts");
+          }
+          if (typeof pkg.license !== "string" || pkg.license.length === 0) {
+            errors.push("staged package has no license; add LICENSE and the license field");
+          }
+          if (!pkg.name || !pkg.version) {
+            errors.push("staged package is missing name or version");
+          }
+          if (errors.length > 0) {
+            for (const error of errors) console.error(error);
+            process.exit(1);
+          }
+          EOF
+
+      - name: Publish to npmjs
+        working-directory: .pack
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
