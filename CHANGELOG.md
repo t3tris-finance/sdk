@@ -5,7 +5,27 @@ SemVer: while it is `0.x`, minor releases may contain breaking changes, each
 listed with migration notes. Deprecations are announced at least one minor
 release before removal.
 
-## Unreleased
+## 0.2.0
+
+Breaking on-chain migration:
+
+- Use `createT3trisClient({ walletClient, publicClient })` or `{ provider, account }`.
+  API construction remains unchanged. API and wallet capabilities are deliberately separate.
+- `createCurate`, `bindEngineClients`, `createEngineClients`, `execute` and `*Steps`
+  exports are removed. `curate.vault` becomes `client.vaults`, `curate.oracle`
+  becomes `client.oracles`, and `curate.roles` becomes `client.roles`.
+- Deploy with `client.vaults.create(payload)`. All writes submit only the requested
+  transaction and return `{ status: "submitted" | "proposed", hash }`.
+- Apps now own connection, chain switching, approvals, Permit2 signing, receipt
+  waiting and workflow status. No implicit funding, claim-before-redeem or retries.
+- All on-chain reads require `chainId`. Both wallet and public RPC chains are
+  checked before writes, with account/network rechecks after simulation.
+- `decreaseDepositRequest` requires `minAmountOut`. Token approvals require an
+  explicit amount. `claimSilosPnl` uses `unsafe` and `redeemRequestId`, matching the contract.
+- The distribution preserves modules so every entry point shares the same error
+  constructors, with working Node ESM and TypeScript declarations.
+
+## 0.1.0
 
 - Publishable source now lives in the [sdk repository](https://github.com/t3tris-finance/sdk).
   npmjs publication is prepared and not enabled.

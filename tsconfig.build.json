@@ -15,7 +15,7 @@
     "strict": true,
     "target": "ES2022",
     "noEmit": false,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
     "rootDir": "src",
     "outDir": "dist"
   },

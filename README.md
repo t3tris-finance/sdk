@@ -1,196 +1,156 @@
 # T3tris SDK
 
-TypeScript client for the T3tris API, with wallet helpers for on-chain vault actions.
-Read vault data and portfolios from your backend, subscribe to live events, or build
-deposit and curator flows with a wallet your app already connects.
+One TypeScript constructor for the T3tris API and on-chain vault actions.
+API credentials stay on your backend. Your browser uses the wallet your app has already connected.
 
 ## Install
 
-The SDK is available from this public GitHub repository. It is not on npm yet.
-With [Bun](https://bun.sh):
-
 ```sh
-bun add git+https://github.com/t3tris-finance/sdk.git#5987866a3eb197bd7eab6d082060159775836bdb
+bun add git+https://github.com/t3tris-finance/sdk.git
 ```
 
-No SSH key or GitHub account is required. This command pins a specific revision
-for reproducible installs. The GitHub package exports TypeScript source, so use
-Bun or a TypeScript-aware bundler such as the one in Next.js or Vite. Plain Node.js
-execution of these sources is not the supported installation path.
+The public GitHub package exports TypeScript source. Use Bun or a TypeScript-aware
+bundler such as Next.js or Vite. Commit your lockfile to pin the resolved revision.
+The package is not published on npm yet.
 
-To try calls in a UI, see the [playground](https://github.com/t3tris-finance/playground).
+## API calls (server)
 
-## First API call
-
-Create a customer API key in [T3tris Curate](https://curate.t3tris.finance/premium).
-Set these variables on your **server**:
-
-```sh
-export T3TRIS_API_URL=https://api.t3tris.finance
-export T3TRIS_API_KEY=sk_your_customer_key
-```
+Get a customer key from [Curate](https://curate.t3tris.finance/premium).
 
 ```ts
 import { createT3trisClient } from "@t3tris/sdk";
 
-const client = createT3trisClient();
-const chains = await client.catalog.listChains();
-```
-
-The client reads both environment variables by default. You can also pass
-`{ baseUrl, apiKey }` directly. The base URL is the API origin, without `/v1`.
-
-Keep your API key out of browser bundles. For a web app, call the SDK from your
-backend and expose a same-origin route to your UI. The API does not allow
-cross-origin browser requests.
-
-## API resources
-
-| Namespace | Use it for |
-| --- | --- |
-| `catalog` | Chains, assets, and latest USD asset quotes |
-| `vaults` | Vault details, history, composition, activity, governance, and curator content |
-| `accounts` | Address-based portfolios, positions, operated vaults, activity, and favorites |
-| `events` | Polling events or subscribing to the live stream |
-| `keys` | Looking up vaults and managing the calling key's vault attachments |
-| `billing` | Current pricing, the calling key's usage, and organisation quota |
-| `auth` | Email or SIWE login, session identity, and logout |
-
-### Vault access and pagination
-
-Customer keys see their attached vaults. A new key with no attachments returns an
-empty vault list. Attach vaults in Curate, or use a key with the `manage` scope:
-
-```ts
-const matches = await client.keys.lookupVaults({ address: "0x..." });
-const vault = matches[0];
-
-if (vault) {
-  await client.keys.attachVault({ chainId: vault.chainId, address: vault.address });
-}
-
-const page = await client.vaults.list({ limit: 20 });
-if (page.nextCursor) {
-  const nextPage = await client.vaults.list({ limit: 20, cursor: page.nextCursor });
-}
-```
-
-Replace `0x...` with a full vault address. An attachment counts against your
-organisation's vault quota. `chainId` is required when the address exists on more
-than one chain. Detach with `client.keys.detachVault({ address, chainId })`.
-
-Paginated methods return `{ items, nextCursor? }`. Reuse the same filters when
-requesting the next page. Methods such as `vaults.getMany` and `keys.lookupVaults`
-return arrays instead. Asset quotes are included in
-`client.catalog.listAssets()` as `latestPriceUsd` when a price is available.
-
-### Sessions and protected writes
-
-Your `sk_` key authenticates every API call. Writes such as changing favorites or
-curator metadata also require an `ss_` session proving the user's identity:
-
-```ts
-const session = await client.auth.loginEmail({
-  email: "you@example.com",
-  password: process.env.T3TRIS_PASSWORD!,
-});
-
-const identity = await client.auth.whoami({ session: session.token });
-await client.auth.logout({ session: session.token });
-```
-
-For wallet identity, call `auth.createSiweNonce`, have the wallet sign the exact
-returned message, then call `auth.verifySiwe({ message, signature })`. Pass the
-returned token as the `{ session }` argument on protected methods.
-
-Email sessions have no wallet and cannot authorise vault-content writes.
-Wallet writes are permission-checked by the API. Store session tokens securely
-on your backend, for example behind an httpOnly session cookie in a web app.
-
-### Live events
-
-Live subscriptions require the `stream` scope on your API key. A session token
-cannot open a stream.
-
-```ts
-const controller = new AbortController();
-const stop = setTimeout(() => controller.abort(), 30_000);
-
-try {
-  for await (const event of client.events.subscribe({}, { signal: controller.signal })) {
-    // Handle event.type and event.data in your application.
-  }
-} finally {
-  clearTimeout(stop);
-}
-```
-
-The SDK reconnects after connection failures. Use the subscription's `onProgress`
-callback to persist a resume cursor, then pass it as `since` on a later
-subscription. For polling, use `client.events.list({ after })`.
-
-## Timeouts and errors
-
-Requests time out after 15 seconds by default. Retries are opt-in and apply only
-to safe GET requests. Writes are never retried automatically.
-
-```ts
-import { ApiError, createT3trisClient } from "@t3tris/sdk";
-
 const client = createT3trisClient({
-  requestOptions: { timeoutMs: 10_000, retries: 2 },
+  baseUrl: "https://api.t3tris.finance",
+  apiKey: process.env.T3TRIS_API_KEY,
 });
 
-try {
-  const usage = await client.billing.getUsage();
-} catch (error) {
-  if (error instanceof ApiError) {
-    // Inspect error.status, error.code, and error.requestId.
-    // On 429, respect error.retryAfterMs before trying again.
-  }
-  throw error;
+const chains = await client.catalog.listChains();
+const vaults = await client.vaults.list({ limit: 20 });
+```
+
+Both settings can also come from `T3TRIS_API_URL` and `T3TRIS_API_KEY`.
+The API origin has no `/v1` suffix. Customer vault lists contain only the vaults
+attached to that key. Paginated methods return `{ items, nextCursor? }`.
+
+| Namespace | Methods cover |
+| --- | --- |
+| `catalog` | Chains, assets and latest USD quotes |
+| `vaults` | Details, history, composition, activity, governance and curator content |
+| `accounts` | Portfolios, positions, activity and favorites |
+| `events` | Polling and live subscriptions |
+| `keys` | Vault lookup, attachments and detachments |
+| `billing` | Pricing and usage |
+| `auth` | SIWE/email sessions, identity and logout |
+
+Keep API keys out of client components. Browser UI should call your own backend.
+The API does not enable cross-origin browser requests. Protected writes take an
+additional `{ session: "ss_..." }` argument. Email sessions cannot authorise wallet
+writes. Live subscriptions require the key's `stream` scope. Attaching vaults
+programmatically requires `manage`.
+
+Requests have a 15-second default timeout. Configure `requestOptions` for a
+shorter deadline, cancellation or optional GET retries. Writes are never retried.
+`ApiError` exposes `status`, `code`, `requestId`, `retryAfterMs` and response headers.
+
+## On-chain calls (wallet)
+
+Pass existing viem or wagmi clients directly. No adapter, engine or separate
+curator client is needed.
+
+```ts
+import { createT3trisClient } from "@t3tris/sdk";
+import { createPublicClient, createWalletClient, custom } from "viem";
+
+// Your app supplies its connected provider and selected account.
+const transport = custom(provider);
+const walletClient = createWalletClient({ account, transport });
+const publicClient = createPublicClient({ transport });
+const client = createT3trisClient({ walletClient, publicClient });
+
+// Your app handles network selection before invoking the SDK.
+await walletClient.switchChain({ id: 42161 });
+
+const result = await client.vaults.setNextEntryFee({
+  chainId: 42161,
+  vault,
+  wad: 10n ** 16n, // 1%, queued according to the vault's fee rules
+});
+
+// Receipt waiting is explicit and belongs to your app.
+if (result.status === "submitted") {
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: result.hash });
+  if (receipt.status === "reverted") throw new Error("Transaction reverted");
 }
 ```
 
-`ApiError` also exposes response `headers`. Quota and rate-limit errors are not
-retried automatically. You can pass an `AbortSignal` in `requestOptions.signal`
-to cancel requests.
+Or use `createT3trisClient({ provider, account })` with an EIP-1193 provider and
+an already-selected address. Construction never opens a connection popup.
+Recreate the client when the selected wallet/account changes.
 
-## On-chain actions
+### One call, one explicit action
 
-Wallet transactions use separate imports and do not need an API key. Your app
-owns the connect UI and network switching. The SDK has no wagmi or RainbowKit
-dependency.
+An on-chain write validates the wallet and RPC chain, simulates the requested
+transaction, and submits it once. It returns `{ status, hash }` without waiting
+for mining. `submitted` means broadcast, not confirmed. `proposed` means a contract
+wallet returned a proposal identifier that must be executed in that wallet.
+EIP-7702 delegated EOAs return `submitted`.
 
-| Import | Contents |
+The SDK never switches chains, approves tokens, signs permits, claims pending
+shares, retries a transaction, or waits for a receipt as a side effect of another
+action. A wrong network throws `ChainMismatchError` before any transaction.
+
+For a deposit, your app checks `client.tokens.allowance`, explicitly calls
+`client.tokens.approve` if needed, waits for approval execution, and then calls
+`client.vaults.deposit`. Approval amounts are explicit. A redeem never claims
+deposit shares automatically. Settlement and fee claims never fund the curator
+implicitly. Use native allowances or provide an explicitly signed `permit2Data`.
+
+### Create a vault
+
+```ts
+const result = await client.vaults.create({
+  chainId,
+  factory,
+  salt,       // bytes32, unique for this deployment
+  params,     // VaultDeployParams: asset, roles, fees, lifecycle flags and metadata
+  safeOracle, // explicit owner and deviation bounds for a fresh SafeOracle
+  oracle,     // existing oracle address, or factoryOracleClone for a new clone
+});
+```
+
+`client.vaults.read.previewAddress({ chainId, factory, deployer, salt })` predicts
+the address. Creation does not attach the vault to an API key.
+`defaultSafeOracle` and `factoryOracleClone` are exported helpers. The default
+oracle bounds are permissive (unbounded up, 100% down), so choose explicit bounds
+for your vault's risk policy.
+
+### On-chain resources
+
+| Namespace | Actions and reads |
 | --- | --- |
-| `@t3tris/sdk` | API client, `ApiError`, and public data types |
-| `@t3tris/sdk/entities` | Data types such as `Vault`, `Position`, and `VaultRef` |
-| `@t3tris/sdk/wallet` | Wallet adapters, deposit/withdraw flows, Permit2 funding, and the step executor |
-| `@t3tris/sdk/curate` | `createCurate` for vault administration, roles, and oracle actions |
+| `vaults` | Create, deposit/redeem/request/claim, settlement, fees, lifecycle, whitelist, metadata, silos and recovery |
+| `vaults.read` | Deposit/redeem previews, limits, balances, settlement previews, queued fees and factory address preview |
+| `roles` / `roles.read` | Vault roles, batched changes, admin transfers and membership |
+| `oracles` / `oracles.read` | Valuations, deviation bounds, roles and admin transfers |
+| `tokens` | Explicit approve, allowance and balance reads |
+| `permit2` | Allowance/nonce reads for apps preparing their own signatures |
 
-Use `bindEngineClients({ walletClient, publicClient })` with your existing viem
-or wagmi clients. For a raw EIP-1193 provider, use `createEngineClients(provider)`.
-Pass the resulting clients to the transaction flows or `createCurate`.
-Import only the entry points above, rather than files under `src/` or `dist/`.
+All on-chain reads take `chainId` and verify the supplied RPC's network.
+Amounts use raw token units (`bigint`). Fee rates use WAD (`10^18 = 100%`).
+`decreaseDepositRequest` requires an explicit `minAmountOut`.
+Batch methods submit one atomic multicall explicitly requested by the caller.
 
-Review transaction parameters before requesting a signature:
+## Examples and compatibility
 
-- `depositSteps` and `requestDepositSteps` default to unlimited token approval.
-  Set `approveAmount` to limit it.
-- `decreaseDepositSteps` defaults `minAmountOut` to `0`, leaving no minimum asset
-  return. Set an explicit floor for slippage protection.
-- `defaultSafeOracle` defaults to an unbounded upward deviation and a 100%
-  downward deviation. Set `bounds` for your risk policy.
-- `factoryOracleClone` is a zero-address sentinel requesting a new SafeOracle
-  clone, not the address of an existing oracle.
+The [playground](https://github.com/t3tris-finance/playground) includes API calls
+and viem examples for the on-chain surface. Live actions use real funds and gas.
 
-## Compatibility
+The API client supports Bun and Node.js 20+ after transpilation. Live events need
+a global `WebSocket` (Node.js 22+ or Bun). Browser wallet integrations require a
+bundler. ESM only. Import types from `@t3tris/sdk/entities`, optional wallet helpers
+from `@t3tris/sdk/wallet`, and role constants from `@t3tris/sdk/curate`.
+There is no separate `createCurate` or `createEarn` constructor.
 
-ESM only. The API client targets Node.js 20+ after bundling/transpilation, or Bun.
-Live subscriptions need a global `WebSocket`, available in Node.js 22+ and Bun.
-Wallet helpers run in modern browsers through a bundler.
-
-The SDK is currently `0.x`. Minor releases can contain breaking changes.
-See the [changelog](./CHANGELOG.md) before upgrading and use
-[GitHub issues](https://github.com/t3tris-finance/sdk/issues) to report bugs.
+See [CHANGELOG.md](./CHANGELOG.md) for the 0.2 migration. Report bugs in
+[GitHub issues](https://github.com/t3tris-finance/sdk/issues).

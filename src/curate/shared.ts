@@ -1,85 +1,54 @@
-/**
- * The curate (vault-admin) module foundation. Every admin action is a pure
- * calldata builder (`input → Step[]`, no network) bound to the injected wallet
- * + public clients by {@link bindActions}; reads are typed wrappers over
- * `readCall` against the same call tables.
- *
- * Mirrors the earn action engine's shape (`../wallet`): no ABI is shipped,
- * writes are simulated with a raw `eth_call` before signing, and reverts are
- * decoded by selector into produced `E_*` error codes.
- */
-
 import type { Address, Hex } from "viem";
 import { earn } from "../wallet/calls";
 import {
-  type EnginePublicClient,
-  type EngineStatus,
-  type EngineWalletClient,
-  type ExecuteResult,
+  assertChain,
   encodeCall,
-  execute,
-  type Step,
+  type OnchainClients,
+  submitTransaction,
+  type TransactionInput,
+  type TransactionResult,
 } from "../wallet/engine";
 
-/** The two clients the engine drives. Pass a viem or wagmi wallet client
- * through `bindEngineClients`, or adapt an EIP-1193 provider with
- * `createEngineClients`. */
-export interface CurateClients {
-  readonly walletClient: EngineWalletClient;
-  readonly publicClient: EnginePublicClient;
-}
-
-/** Per-call knobs threaded into `execute` (currently just the status callback). */
-export interface RunOptions {
-  readonly onStatus?: (status: EngineStatus) => void;
-}
-
-/** A pure calldata builder: input → declarative `Step[]` (no network, no signing). */
-export type StepBuilder<I> = (input: I) => Step[];
-
-/** A map of named step builders. The `never` input makes any concrete builder
- * assignable, so inference recovers each builder's real input type via
- * `Parameters`. */
-export type StepBuilders = Record<string, StepBuilder<never>>;
-
-/** The executing surface: one action per builder, typed to its input. */
-export type Actions<B extends StepBuilders> = {
-  [K in keyof B]: (input: Parameters<B[K]>[0], opts?: RunOptions) => Promise<ExecuteResult>;
+export type ActionBuilders = Record<string, (input: never) => TransactionInput>;
+export type Actions<B extends ActionBuilders> = {
+  [K in keyof B]: (input: Parameters<B[K]>[0]) => Promise<TransactionResult>;
 };
 
-/** Bind a builder map to the clients: each entry becomes an action that builds
- * its steps then `execute`s them against the wallet. */
-export function bindActions<B extends StepBuilders>(
-  clients: CurateClients,
+export function bindActions<B extends ActionBuilders>(
+  clients: OnchainClients,
   builders: B,
 ): Actions<B> {
   const actions: Record<string, unknown> = {};
   for (const key of Object.keys(builders)) {
-    const build = builders[key] as StepBuilder<never>;
-    // `async` so a synchronous builder guard (e.g. an empty whitelist batch)
-    // surfaces as a rejected promise — callers always `await` the action.
-    actions[key] = async (input: never, opts?: RunOptions) =>
-      execute(build(input), {
-        walletClient: clients.walletClient,
-        publicClient: clients.publicClient,
-        ...(opts?.onStatus !== undefined ? { onStatus: opts.onStatus } : {}),
-      });
+    const build = builders[key] as (input: never) => TransactionInput;
+    actions[key] = async (input: never) => submitTransaction(clients, build(input));
   }
   return actions as Actions<B>;
 }
 
-/** The chain-gate + single-tx flow behind nearly every curate write. */
-export function txFlow(chainId: number, to: Address, data: Hex): Step[] {
-  return [
-    { kind: "requireChain", chainId },
-    { kind: "tx", to, data },
-  ];
+export type Reads<R extends Record<string, (input: never) => Promise<unknown>>> = {
+  [K in keyof R]: (input: Parameters<R[K]>[0] & { chainId: number }) => ReturnType<R[K]>;
+};
+
+export function bindReads<R extends Record<string, (input: never) => Promise<unknown>>>(
+  clients: OnchainClients,
+  reads: R,
+): Reads<R> {
+  const result: Record<string, unknown> = {};
+  for (const key of Object.keys(reads)) {
+    const read = reads[key] as (input: never) => Promise<unknown>;
+    result[key] = async (input: { chainId: number }) => {
+      await assertChain(clients.publicClient, input.chainId);
+      return read(input as never);
+    };
+  }
+  return result as Reads<R>;
 }
 
-/** Solady `multicall(bytes[])` — wrap already-encoded sub-calls into one atomic
- * tx (the vault/roles batch ops). */
+export function transaction(chainId: number, to: Address, data: Hex): TransactionInput {
+  return { chainId, to, data };
+}
+
 export function encodeMulticall(subcalls: readonly Hex[]): Hex {
   return encodeCall(earn.batch, [subcalls]);
 }
-
-export type { EngineStatus, ExecuteResult, Step };

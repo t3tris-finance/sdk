@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { createT3trisClient } from "../../src/client/createClient";
+import { createT3trisClient } from "../../src/client/unified";
 import type { StreamEvent } from "../../src/entities/stream";
 
 const BASE = "http://127.0.0.1:9";

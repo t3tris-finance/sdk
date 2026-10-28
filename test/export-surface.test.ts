@@ -1,162 +1,21 @@
 import { describe, expect, test } from "bun:test";
-import * as curate from "../src/curate/index";
-import * as entities from "../src/entities/index";
-import * as root from "../src/index";
-import * as wallet from "../src/wallet/index";
+import pkg from "../package.json";
+import * as root from "../src";
+import * as constants from "../src/curate";
+import * as wallet from "../src/wallet";
 
-/**
- * The four package.json export-map entries are the public SemVer boundary.
- * Deliberately update this snapshot when adding/removing a public runtime
- * symbol; types remain verified by the packed-artifact smoke typecheck.
- */
-const PUBLIC_EXPORTS = {
-  ".": [
-    "ACTIVITY_CATEGORIES",
-    "ApiError",
-    "CREDIT_PURCHASE_MAX_CENTS",
-    "CREDIT_PURCHASE_MIN_CENTS",
-    "HIDDEN_ACTIVITY_KINDS",
-    "LIMIT_CEILINGS",
-    "PUBLIC_ACTIVITY_CATEGORIES",
-    "SDK_VERSION",
-    "SESSION_HEADER",
-    "apiKeyHint",
-    "canonicalPerformanceHistory",
-    "chartApyPoints",
-    "createT3trisClient",
-    "latestChartApy",
-    "usdcUnitsFromCents",
-    "valuationNavs",
-    "weightedApyUpTo",
-  ],
-  "./entities": [
-    "ACTIVITY_CATEGORIES",
-    "CREDIT_PURCHASE_MAX_CENTS",
-    "CREDIT_PURCHASE_MIN_CENTS",
-    "HIDDEN_ACTIVITY_KINDS",
-    "LIMIT_CEILINGS",
-    "PUBLIC_ACTIVITY_CATEGORIES",
-    "apiKeyHint",
-    "canonicalPerformanceHistory",
-    "chartApyPoints",
-    "latestChartApy",
-    "usdcUnitsFromCents",
-    "valuationNavs",
-    "weightedApyUpTo",
-  ],
-  "./curate": [
-    "ActionCancelledError",
-    "FeeClaimType",
-    "ORACLE_ADMIN_SET_MAX_PPS_DEVIATION_DOWN_ROLE",
-    "ORACLE_ADMIN_SET_MAX_PPS_DEVIATION_UP_ROLE",
-    "ORACLE_ADMIN_SET_TOTAL_ASSETS_ROLE",
-    "ORACLE_SET_MAX_PPS_DEVIATION_DOWN_ROLE",
-    "ORACLE_SET_MAX_PPS_DEVIATION_UP_ROLE",
-    "ORACLE_SET_TOTAL_ASSETS_ROLE",
-    "PlatformActionError",
-    "T3TRIS_ADD_VAULT_IMPLEMENTATION_ROLE",
-    "T3TRIS_DEPLOY_SILO_WITH_CUSTOM_STRATEGY_ROLE",
-    "T3TRIS_DEPLOY_VAULT_WITH_EXTRA_PARAMS_ROLE",
-    "T3TRIS_PAUSE_PROTOCOL_ROLE",
-    "T3TRIS_PAUSE_VAULTS_ROLE",
-    "T3TRIS_SET_DEFAULT_GOVERNANCE_OWNER_ROLE",
-    "T3TRIS_SET_DEFAULT_SILO_ROLE",
-    "T3TRIS_SET_DEFAULT_STRATEGY_GENERATOR_ROLE",
-    "T3TRIS_SET_T3TREASURY_ROLE",
-    "T3TRIS_SET_VERSION_WHITELIST_ROLE",
-    "T3TRIS_UNPAUSE_PROTOCOL_ROLE",
-    "T3TRIS_UNPAUSE_VAULTS_ROLE",
-    "T3TRIS_UPGRADE_ROLE",
-    "VAULT_CLAIM_FEES_ROLE",
-    "VAULT_CLAIM_SILO_PNL_ROLE",
-    "VAULT_CLOSE_ROLE",
-    "VAULT_DISABLE_END_OF_FUND_ROLE",
-    "VAULT_ENABLE_DEPOSIT_ROLE",
-    "VAULT_ENABLE_END_OF_FUND_ROLE",
-    "VAULT_ENABLE_TRANSFER_ROLE",
-    "VAULT_ENABLE_WHITELIST_ROLE",
-    "VAULT_FORCE_CLAIM_DEPOSIT_ROLE",
-    "VAULT_GOVERNANCE_ADMIN_ROLE",
-    "VAULT_OPEN_ROLE",
-    "VAULT_PAUSE_ROLE",
-    "VAULT_RECOVERY_ROLE",
-    "VAULT_SETTLE_DEPOSITS_ROLE",
-    "VAULT_SETTLE_REDEMPTIONS_ROLE",
-    "VAULT_SETTLE_ROLE",
-    "VAULT_SET_IPFS_HASH_ROLE",
-    "VAULT_SET_SHARE_NAME_SYMBOL_ROLE",
-    "VAULT_SET_WHITELISTED_ROLE",
-    "VAULT_SWEEP_ROLE",
-    "VAULT_UNPAUSE_ROLE",
-    "VAULT_UPDATE_ACCRUED_FEES_ROLE",
-    "VAULT_UPDATE_CURATOR_ROLE",
-    "VAULT_UPDATE_ENTRY_FEE_WAD_ROLE",
-    "VAULT_UPDATE_EXIT_FEE_WAD_ROLE",
-    "VAULT_UPDATE_FEE_RECIPIENT_ROLE",
-    "VAULT_UPDATE_MGMT_FEE_WAD_ROLE",
-    "VAULT_UPDATE_NEW_DEPOSIT_SILO_ROLE",
-    "VAULT_UPDATE_NEW_REDEEM_SILO_ROLE",
-    "VAULT_UPDATE_ORACLE_ROLE",
-    "VAULT_UPDATE_PERFORMANCE_FEE_WAD_ROLE",
-    "VAULT_UPDATE_SHARES_ROLE",
-    "VAULT_UPDATE_SYNC_SILO_ROLE",
-    "VAULT_UPDATE_T3TREASURY_ROLE",
-    "VAULT_UPGRADE_VAULT_ROLE",
-    "ZERO_ROLE",
-    "createCurate",
-    "roleId",
-  ],
-  "./wallet": [
-    "ActionCancelledError",
-    "DEFAULT_PERMIT_EXPIRATION_SECONDS",
-    "DEFAULT_SIG_DEADLINE_SECONDS",
-    "ERRORS",
-    "PERMIT2_ADDRESS",
-    "PlatformActionError",
-    "SAFE_ORACLE_DEVIATION_DOWN",
-    "SAFE_ORACLE_DEVIATION_UP",
-    "bindEngineClients",
-    "buildPermitSingleTypedData",
-    "claimDepositSteps",
-    "claimRedeemSteps",
-    "createEngineClients",
-    "decreaseDepositSteps",
-    "decreaseRedeemSteps",
-    "defaultSafeOracle",
-    "deployVaultSteps",
-    "depositSteps",
-    "earn",
-    "encodeCall",
-    "encodeDeployVault",
-    "encodePermit2Data",
-    "erc20",
-    "errorCodeOf",
-    "execute",
-    "factory",
-    "factoryOracleClone",
-    "fetchChainId",
-    "injectedProvider",
-    "permit2Table",
-    "permitDeadlines",
-    "preferredInjectedWallet",
-    "previewVaultAddress",
-    "readCall",
-    "readPermit2Allowance",
-    "redeemSteps",
-    "requestAccounts",
-    "requestDepositSteps",
-    "requestRedeemSteps",
-    "requireAccount",
-    "resolveAsset",
-    "watchInjectedWallets",
-  ],
-} as const;
-
-describe("SDK public export surface", () => {
-  test("matches the SemVer-covered package subpaths", () => {
-    expect(Object.keys(root).sort()).toEqual(PUBLIC_EXPORTS["."]);
-    expect(Object.keys(entities).sort()).toEqual(PUBLIC_EXPORTS["./entities"]);
-    expect(Object.keys(curate).sort()).toEqual(PUBLIC_EXPORTS["./curate"]);
-    expect(Object.keys(wallet).sort()).toEqual(PUBLIC_EXPORTS["./wallet"]);
+describe("public SDK surface", () => {
+  test("one constructor and no implicit workflow entry points", () => {
+    expect(Object.keys(pkg.exports).sort()).toEqual([".", "./curate", "./entities", "./wallet"]);
+    expect(root.SDK_VERSION).toBe(pkg.version);
+    expect(typeof root.createT3trisClient).toBe("function");
+    for (const exports of [root, constants, wallet]) {
+      for (const name of Object.keys(exports)) {
+        expect(name).not.toMatch(
+          /Steps$|^execute$|^createCurate$|^bindEngineClients$|^createEngineClients$|^make.*Actions$/,
+        );
+      }
+    }
+    expect(constants.VAULT_SETTLE_ROLE).toMatch(/^0x/);
   });
 });

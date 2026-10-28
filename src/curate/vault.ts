@@ -6,9 +6,9 @@
  */
 
 import type { Address, Hex } from "viem";
-import { encodeCall, readCall, type Step, type StepCtx } from "../wallet/engine";
+import { encodeCall, type OnchainClients, readCall } from "../wallet/engine";
 import { curateSilo, curateVault } from "./calls";
-import { bindActions, type CurateClients, encodeMulticall, txFlow } from "./shared";
+import { bindActions, bindReads, encodeMulticall, transaction as txFlow } from "./shared";
 
 /** `IVaultTypes.FeeClaimType` (uint8): the settle/open/end-of-fund fee
  * behaviour. `None` claims nothing, `Soft` claims shares only, `Full` claims
@@ -40,8 +40,6 @@ export interface Target {
 }
 
 export interface SettleInput extends Target {
-  /** Curator funding is quoted and approved only after chain verification. */
-  readonly asset?: Address;
   readonly kind: SettleKind;
   /** `FeeClaimType` for `deposits`/`both` (ignored for `redemptions`). */
   readonly feeClaimType?: FeeClaimType;
@@ -52,69 +50,6 @@ export interface SettleInput extends Target {
   /** Explicit permit2 payload for callers managing their own funding. */
   readonly permit2Data?: Hex;
 }
-
-const settlementFunding = (i: SettleInput): Step[] =>
-  i.asset === undefined
-    ? []
-    : [
-        {
-          kind: "fundCurator",
-          id: "settlement",
-          build: async ({ publicClient }) => {
-            const result =
-              i.kind === "redemptions"
-                ? (
-                    await readCall<readonly [readonly unknown[]]>(
-                      curateVault.previewSettleRedemptions,
-                      publicClient,
-                      { address: i.vault, args: [i.fullClaim ?? false] },
-                    )
-                  )[0]
-                : i.kind === "deposits"
-                  ? (
-                      await readCall<readonly [readonly unknown[]]>(
-                        curateVault.previewSettleDeposits,
-                        publicClient,
-                        { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] },
-                      )
-                    )[0]
-                  : (
-                      await readCall<readonly [readonly unknown[]]>(
-                        curateVault.previewSettleAll,
-                        publicClient,
-                        { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] },
-                      )
-                    )[0];
-            const index = i.kind === "redemptions" ? 8 : i.kind === "deposits" ? 9 : 13;
-            const amount = result[index];
-            if (typeof amount !== "bigint") throw new Error("Settlement funding quote unavailable");
-            if (amount === 0n) {
-              return {
-                token: i.asset as Address,
-                curator: i.vault,
-                vault: i.vault,
-                amount,
-                chainId: i.chainId,
-              };
-            }
-            const [curator] = await readCall<readonly [Address]>(
-              curateVault.curator,
-              publicClient,
-              {
-                address: i.vault,
-                args: [],
-              },
-            );
-            return {
-              token: i.asset as Address,
-              curator,
-              vault: i.vault,
-              amount,
-              chainId: i.chainId,
-            };
-          },
-        },
-      ];
 
 function settleData(i: SettleInput, permit2Data = i.permit2Data ?? "0x"): Hex {
   const unsafe = i.unsafe ?? false;
@@ -144,18 +79,7 @@ function whitelistFlow(
 
 const builders = {
   // settlement
-  settle: (i: SettleInput): Step[] =>
-    i.asset === undefined
-      ? txFlow(i.chainId, i.vault, settleData(i))
-      : [
-          { kind: "requireChain", chainId: i.chainId },
-          ...settlementFunding(i),
-          {
-            kind: "tx",
-            to: i.vault,
-            data: (ctx: StepCtx) => settleData(i, ctx.fundingPayload("settlement")),
-          },
-        ],
+  settle: (i: SettleInput) => txFlow(i.chainId, i.vault, settleData(i)),
 
   // fee schedule (queued via `setNext*Fee`)
   setNextManagementFee: (i: Target & { wad: bigint; days: number }) =>
@@ -169,75 +93,18 @@ const builders = {
 
   // fee crystallisation / claim
   claimFees: (
-    i: Target & {
-      shares: bigint;
-      asset?: Address;
-      unsafe?: boolean;
-      minAssetsOut?: bigint;
-      permit2Data?: Hex;
-    },
-  ): Step[] => {
-    const data = (permit2Data: Hex) =>
+    i: Target & { shares: bigint; unsafe?: boolean; minAssetsOut?: bigint; permit2Data?: Hex },
+  ) =>
+    txFlow(
+      i.chainId,
+      i.vault,
       encodeCall(curateVault.claimFees, [
         i.unsafe ?? false,
         i.shares,
         i.minAssetsOut ?? 0n,
-        permit2Data,
-      ]);
-    if (i.asset === undefined) return txFlow(i.chainId, i.vault, data(i.permit2Data ?? "0x"));
-    return [
-      { kind: "requireChain", chainId: i.chainId },
-      {
-        kind: "fundCurator",
-        id: "claim",
-        build: async ({ publicClient }) => {
-          const [vaultOpen] = await readCall<readonly [boolean]>(
-            curateVault.vaultOpen,
-            publicClient,
-            {
-              address: i.vault,
-              args: [],
-            },
-          );
-          if (vaultOpen) {
-            return {
-              token: i.asset as Address,
-              curator: i.vault,
-              vault: i.vault,
-              amount: 0n,
-              chainId: i.chainId,
-            };
-          }
-          const [quoted] = await readCall<readonly [bigint]>(
-            curateVault.previewClaimFees,
-            publicClient,
-            { address: i.vault, args: [i.shares] },
-          );
-          if (quoted === 0n) {
-            return {
-              token: i.asset as Address,
-              curator: i.vault,
-              vault: i.vault,
-              amount: 0n,
-              chainId: i.chainId,
-            };
-          }
-          const [curator] = await readCall<readonly [Address]>(curateVault.curator, publicClient, {
-            address: i.vault,
-            args: [],
-          });
-          return {
-            token: i.asset as Address,
-            curator,
-            vault: i.vault,
-            amount: quoted,
-            chainId: i.chainId,
-          };
-        },
-      },
-      { kind: "tx", to: i.vault, data: (ctx) => data(ctx.fundingPayload("claim")) },
-    ];
-  },
+        i.permit2Data ?? "0x",
+      ]),
+    ),
   updateAccruedFees: (i: Target) =>
     txFlow(i.chainId, i.vault, encodeCall(curateVault.updateAccruedFees, [])),
 
@@ -358,7 +225,7 @@ const builders = {
       encodeCall(curateVault.setRedeemSilo, [i.silo, i.unsafeOut ?? false, i.unsafeIn ?? false]),
     ),
   claimSilosPnl: (
-    i: Target & { sync?: boolean; deposit?: boolean; redeem?: boolean; minAssetsOut?: bigint },
+    i: Target & { sync?: boolean; deposit?: boolean; unsafe?: boolean; redeemRequestId?: bigint },
   ) =>
     txFlow(
       i.chainId,
@@ -366,8 +233,8 @@ const builders = {
       encodeCall(curateVault.claimSilosPnl, [
         i.sync ?? false,
         i.deposit ?? false,
-        i.redeem ?? false,
-        i.minAssetsOut ?? 0n,
+        i.unsafe ?? false,
+        i.redeemRequestId ?? 0n,
       ]),
     ),
 
@@ -377,8 +244,22 @@ const builders = {
 };
 
 /** Build the `curate.vault` namespace: writes + read-only previews/queue reads. */
-export function makeVaultCurate(clients: CurateClients) {
+export function makeVaultActions(clients: OnchainClients) {
   const read = {
+    curator: async (i: { vault: Address }) =>
+      (
+        await readCall<readonly [Address]>(curateVault.curator, clients.publicClient, {
+          address: i.vault,
+          args: [],
+        })
+      )[0],
+    isOpen: async (i: { vault: Address }) =>
+      (
+        await readCall<readonly [boolean]>(curateVault.vaultOpen, clients.publicClient, {
+          address: i.vault,
+          args: [],
+        })
+      )[0],
     /** Raw `previewSettleAll` tuple, in positional ABI order. */
     previewSettleAll: async (i: { vault: Address; feeClaimType?: FeeClaimType }) =>
       (
@@ -481,5 +362,5 @@ export function makeVaultCurate(clients: CurateClients) {
       return { pending, daysPending, wad, days };
     },
   };
-  return { ...bindActions(clients, builders), read };
+  return { ...bindActions(clients, builders), read: bindReads(clients, read) };
 }

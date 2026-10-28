@@ -1,12 +1,26 @@
-/**
- * `@t3tris/sdk/wallet` — the earn action engine: wallet-client adapter,
- * call codecs, depositor flows, Permit2 funding, and the step executor.
- */
-
-export * from "./calls";
-export * from "./engine";
-export * from "./errors";
-export * from "./factory";
-export * from "./flows";
-export * from "./permit2";
+/** Optional protocol helpers. All actions use createT3trisClient from @t3tris/sdk. */
+export {
+  ActionCancelledError,
+  ChainMismatchError,
+  type OnchainClients,
+  PlatformActionError,
+  type PublicClientSource,
+  type TransactionResult,
+  type WalletClientSource,
+} from "./engine";
+export {
+  type DeployVaultArgs,
+  defaultSafeOracle,
+  factoryOracleClone,
+  type GlobalFeesParams,
+  type SafeOracleParams,
+  type VaultDeployParams,
+} from "./factory";
+export {
+  buildPermitSingleTypedData,
+  encodePermit2Data,
+  PERMIT2_ADDRESS,
+  type PermitSingle,
+  permitDeadlines,
+} from "./permit2";
 export * from "./provider";

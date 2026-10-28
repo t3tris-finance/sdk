@@ -13,8 +13,7 @@ import {
   maxUint128,
   zeroAddress,
 } from "viem";
-import { type EnginePublicClient, readCall, requireAccount, type Step } from "./engine";
-import type { FlowContext } from "./flows";
+import { type PublicClientSource, readCall } from "./engine";
 
 const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000" as Hex;
 
@@ -157,17 +156,8 @@ export function encodeDeployVault(args: Omit<DeployVaultArgs, "factory" | "chain
   ]);
 }
 
-export function deployVaultSteps(_ctx: FlowContext, args: DeployVaultArgs): Step[] {
-  requireAccount(_ctx.walletClient);
-  const data = encodeDeployVault(args);
-  return [
-    { kind: "requireChain", chainId: args.chainId },
-    { kind: "tx", to: args.factory, data },
-  ];
-}
-
 export async function previewVaultAddress(
-  publicClient: EnginePublicClient,
+  publicClient: PublicClientSource,
   args: { factory: Address; deployer: Address; salt: Hex },
 ): Promise<Address> {
   const [address] = await readCall<[Address]>(factory.previewVaultAddress, publicClient, {

@@ -132,7 +132,7 @@ const wait = (ms: number, signal?: AbortSignal): Promise<void> =>
     signal?.addEventListener("abort", abort, { once: true });
   });
 
-export function createT3trisClient(options: T3trisClientOptions = {}): T3trisClient {
+export function createApiClient(options: T3trisClientOptions = {}): T3trisClient {
   const base = (options.baseUrl ?? readEnv("T3TRIS_API_URL"))?.replace(/\/$/, "");
   if (base === undefined) {
     throw new Error("createT3trisClient: pass baseUrl or set T3TRIS_API_URL");

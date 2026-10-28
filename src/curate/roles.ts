@@ -10,9 +10,9 @@
  */
 
 import { type Address, type Hex, keccak256, toBytes } from "viem";
-import { encodeCall, readCall } from "../wallet/engine";
+import { encodeCall, type OnchainClients, readCall } from "../wallet/engine";
 import { curateRoles } from "./calls";
-import { bindActions, type CurateClients, encodeMulticall, txFlow } from "./shared";
+import { bindActions, bindReads, encodeMulticall, transaction as txFlow } from "./shared";
 
 /** The bytes32 role id for a role name: `keccak256(utf8Bytes(name))`. Matches
  * OpenZeppelin's `keccak256("SOME_ROLE")` id derivation. */
@@ -223,7 +223,7 @@ function encodeRole(op: keyof typeof curateRoles, ...args: readonly unknown[]): 
 }
 
 /** Build the `curate.roles` namespace: writes + membership reads. */
-export function makeRolesCurate(clients: CurateClients) {
+export function makeRoleActions(clients: OnchainClients) {
   const read = {
     has: async (i: { vault: Address; role: Hex; account: Address }) =>
       (
@@ -277,5 +277,5 @@ export function makeRolesCurate(clients: CurateClients) {
         )
       )[0],
   };
-  return { ...bindActions(clients, builders), read };
+  return { ...bindActions(clients, builders), read: bindReads(clients, read) };
 }

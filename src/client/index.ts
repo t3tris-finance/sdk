@@ -31,5 +31,7 @@ export type {
   VaultMetadataInput,
 } from "./common";
 export { SESSION_HEADER } from "./common";
-export { ApiError, createT3trisClient, type T3trisClientOptions } from "./createClient";
+export { ApiError, type T3trisClientOptions } from "./createClient";
+export type { T3trisWalletClient } from "./onchain";
 export type { T3trisClient } from "./public";
+export { createT3trisClient, type T3trisApiOptions, type T3trisWalletOptions } from "./unified";

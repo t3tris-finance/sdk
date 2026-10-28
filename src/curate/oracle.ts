@@ -9,9 +9,9 @@
  */
 
 import type { Address, Hex } from "viem";
-import { encodeCall, readCall } from "../wallet/engine";
+import { encodeCall, type OnchainClients, readCall } from "../wallet/engine";
 import { curateOracle } from "./calls";
-import { bindActions, type CurateClients, encodeMulticall, txFlow } from "./shared";
+import { bindActions, bindReads, encodeMulticall, transaction as txFlow } from "./shared";
 
 export interface Target {
   readonly oracle: Address;
@@ -69,7 +69,7 @@ const builders = {
 };
 
 /** Build the `curate.oracle` namespace: writes + reads. */
-export function makeOracleCurate(clients: CurateClients) {
+export function makeOracleActions(clients: OnchainClients) {
   const read = {
     totalAssets: async (i: { oracle: Address }) =>
       (
@@ -137,5 +137,5 @@ export function makeOracleCurate(clients: CurateClients) {
         })
       )[0],
   };
-  return { ...bindActions(clients, builders), read };
+  return { ...bindActions(clients, builders), read: bindReads(clients, read) };
 }

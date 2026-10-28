@@ -1,20 +1,10 @@
-/**
- * `@t3tris/sdk/curate` — the vault-curator (admin) action module. `createCurate`
- * wires the on-chain admin surfaces (vault, roles, oracle) over the injected
- * viem clients. Every write is `namespace.action(input)` → build a `Step[]` →
- * `execute`; `namespace.read.*` decodes previews/getters through the same call
- * tables.
- *
- * Indexed vault state is read with `createT3trisClient`. This module only
- * builds and sends the admin transactions through the injected wallet.
- */
-
-import { makeOracleCurate } from "./oracle";
-import { makeRolesCurate } from "./roles";
-import type { CurateClients } from "./shared";
-import { makeVaultCurate } from "./vault";
-
-export { ActionCancelledError, PlatformActionError } from "../wallet/engine";
+/** Protocol constants and types. Construct all clients with createT3trisClient from @t3tris/sdk. */
+export {
+  ActionCancelledError,
+  ChainMismatchError,
+  PlatformActionError,
+  type TransactionResult,
+} from "../wallet/engine";
 export {
   ORACLE_ADMIN_SET_MAX_PPS_DEVIATION_DOWN_ROLE,
   ORACLE_ADMIN_SET_MAX_PPS_DEVIATION_UP_ROLE,
@@ -73,31 +63,4 @@ export {
   VAULT_UPGRADE_VAULT_ROLE,
   ZERO_ROLE,
 } from "./roles";
-export type {
-  CurateClients,
-  EngineStatus,
-  ExecuteResult,
-  RunOptions,
-  Step,
-} from "./shared";
-export {
-  FeeClaimType,
-  type QueuedFee,
-  type QueuedManagementFee,
-  type SettleKind,
-} from "./vault";
-
-/**
- * Build a curator client bound to a wallet + public client. Returns the three
- * admin namespaces, each exposing its actions and a `read` sub-namespace.
- */
-export function createCurate(clients: CurateClients) {
-  return {
-    vault: makeVaultCurate(clients),
-    roles: makeRolesCurate(clients),
-    oracle: makeOracleCurate(clients),
-  };
-}
-
-/** The object returned by {@link createCurate}. */
-export type Curate = ReturnType<typeof createCurate>;
+export { FeeClaimType, type QueuedFee, type QueuedManagementFee, type SettleKind } from "./vault";

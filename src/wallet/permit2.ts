@@ -17,7 +17,7 @@ import {
   type TypedDataDomain,
 } from "viem";
 import { permit2Table } from "./calls";
-import { type EnginePublicClient, readCall } from "./engine";
+import { type PublicClientSource, readCall } from "./engine";
 
 /** Canonical Permit2 deployment — identical address on every chain. */
 export const PERMIT2_ADDRESS = "0x000000000022D473030F116dDEE9F6B43aC78BA3" as const;
@@ -29,7 +29,7 @@ export const DEFAULT_SIG_DEADLINE_SECONDS = 30 * 60;
 
 /** `allowance(owner, token, spender)` on Permit2 — the rolling nonce source. */
 export async function readPermit2Allowance(
-  client: EnginePublicClient,
+  client: Pick<PublicClientSource, "call">,
   params: { owner: Address; token: Address; spender: Address },
 ): Promise<{ amount: bigint; expiration: number; nonce: number }> {
   const [amount, expiration, nonce] = await readCall<[bigint, number, number]>(

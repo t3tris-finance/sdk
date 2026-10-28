@@ -1,7 +1,7 @@
 {
   "name": "@t3tris/sdk",
-  "version": "0.1.0",
-  "description": "Typed client for the T3tris API (/v1) plus the on-chain action engine.",
+  "version": "0.2.0",
+  "description": "Typed T3tris API and explicit on-chain actions through one client.",
   "type": "module",
   "private": true,
   "exports": {

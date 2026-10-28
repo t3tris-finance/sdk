@@ -57,7 +57,7 @@ const nodeDir = makeFixture("node");
 writeFileSync(
   join(nodeDir, "main.mjs"),
   `import { createT3trisClient, SDK_VERSION } from "@t3tris/sdk";
-import { createCurate, VAULT_SETTLE_ROLE } from "@t3tris/sdk/curate";
+import { VAULT_SETTLE_ROLE } from "@t3tris/sdk/curate";
 import * as entities from "@t3tris/sdk/entities";
 import * as wallet from "@t3tris/sdk/wallet";
 
@@ -70,7 +70,7 @@ const assert = (ok, msg) => {
 
 assert(typeof createT3trisClient === "function", "createT3trisClient export");
 assert(typeof SDK_VERSION === "string" && SDK_VERSION.length > 0, "SDK_VERSION export");
-assert(typeof createCurate === "function", "createCurate export");
+assert(wallet.execute === undefined, "no implicit workflow executor");
 assert(VAULT_SETTLE_ROLE !== undefined, "curate role constants export");
 assert(Object.keys(wallet).length > 0, "wallet exports");
 
@@ -99,7 +99,7 @@ writeFileSync(
   type Vault,
 } from "@t3tris/sdk";
 import type { Address, StreamEvent } from "@t3tris/sdk/entities";
-import { createCurate, type Curate, type CurateClients } from "@t3tris/sdk/curate";
+import type { T3trisWalletClient, T3trisWalletOptions } from "@t3tris/sdk";
 import type * as wallet from "@t3tris/sdk/wallet";
 
 const client: T3trisClient = createT3trisClient();
@@ -108,10 +108,10 @@ const usage: Promise<UsageSummary> = client.billing.getUsage();
 const pricing: Promise<BillingPricing> = client.billing.getPricing();
 const address: Address = "0x0000000000000000000000000000000000000001";
 const event: StreamEvent | null = null;
-const curate: Curate | null = null;
-const clients: CurateClients | null = null;
+const curate: T3trisWalletClient | null = null;
+const clients: T3trisWalletOptions | null = null;
 type WalletModule = typeof wallet;
-void [createCurate, page, usage, pricing, address, event, curate, clients];
+void [page, usage, pricing, address, event, curate, clients];
 void (null as unknown as WalletModule | null);
 `,
 );
@@ -145,7 +145,7 @@ const browserDir = makeFixture("browser");
 writeFileSync(
   join(browserDir, "entry.ts"),
   `export { createT3trisClient } from "@t3tris/sdk";
-export { createCurate } from "@t3tris/sdk/curate";
+export { VAULT_SETTLE_ROLE } from "@t3tris/sdk/curate";
 export * as wallet from "@t3tris/sdk/wallet";
 `,
 );

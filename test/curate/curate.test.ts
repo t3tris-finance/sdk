@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { type Address, encodeAbiParameters, keccak256, toBytes } from "viem";
 import { curateOracle, curateRoles, curateSilo, curateVault } from "../../src/curate/calls";
-import { createCurate } from "../../src/curate/index";
 import { roleId, VAULT_PAUSE_ROLE, VAULT_SETTLE_ROLE, ZERO_ROLE } from "../../src/curate/roles";
 import { encodeMulticall } from "../../src/curate/shared";
 import { FeeClaimType } from "../../src/curate/vault";
+import { createT3trisClient } from "../../src/index";
 import { encodeCall } from "../../src/wallet/engine";
 
 const VAULT = "0xa11ce00000000000000000000000000000000001" as Address;
@@ -18,6 +18,7 @@ function fakeClients() {
   const hash = `0x${"ab".repeat(32)}` as const;
   const walletClient = {
     account: { address: ACCOUNT },
+    getAddresses: async () => [ACCOUNT],
     getChainId: async () => 42161,
     switchChain: async () => undefined,
     sendTransaction: async (args: { to: Address; data: `0x${string}` }) => {
@@ -27,6 +28,7 @@ function fakeClients() {
     signTypedData: async () => "0x" as const,
   };
   const publicClient = {
+    getChainId: async () => 42161,
     call: async () => ({ data: "0x" as const }),
     getCode: async () => "0x" as const,
     getBlock: async () => ({ timestamp: 1n }),
@@ -87,11 +89,11 @@ describe("createCurate actions", () => {
       ],
       [[false, false, 0n, 0]],
     );
-    const curate = createCurate({
+    const curate = createT3trisClient({
       ...clients,
       publicClient: { ...clients.publicClient, call: async () => ({ data: output }) },
     });
-    expect(await curate.vault.read.nextManagementFee({ vault: VAULT })).toEqual({
+    expect(await curate.vaults.read.nextManagementFee({ vault: VAULT, chainId: 42161 })).toEqual({
       pending: false,
       daysPending: false,
       wad: 0n,
@@ -101,13 +103,13 @@ describe("createCurate actions", () => {
 
   test("vault.setDepositEnabled sends the encoded selector to the vault", async () => {
     const { sent, clients } = fakeClients();
-    const curate = createCurate(clients);
-    const result = await curate.vault.setDepositEnabled({
+    const curate = createT3trisClient(clients);
+    const result = await curate.vaults.setDepositEnabled({
       chainId: 42161,
       vault: VAULT,
       enabled: false,
     });
-    expect(result.status).toBe("confirmed");
+    expect(result.status).toBe("submitted");
     expect(sent).toHaveLength(1);
     expect(sent[0]?.to).toBe(VAULT);
     expect(sent[0]?.data).toBe(encodeCall(curateVault.setDepositEnabled, [false]));
@@ -115,8 +117,8 @@ describe("createCurate actions", () => {
 
   test("vault.settle encodes the FeeClaimType enum for settleAll", async () => {
     const { sent, clients } = fakeClients();
-    const curate = createCurate(clients);
-    await curate.vault.settle({
+    const curate = createT3trisClient(clients);
+    await curate.vaults.settle({
       chainId: 42161,
       vault: VAULT,
       kind: "both",
@@ -127,9 +129,9 @@ describe("createCurate actions", () => {
 
   test("vault.applyDepositWhitelist fuses addresses into one multicall", async () => {
     const { sent, clients } = fakeClients();
-    const curate = createCurate(clients);
+    const curate = createT3trisClient(clients);
     const other = "0x3333333333333333333333333333333333333333" as Address;
-    await curate.vault.applyDepositWhitelist({
+    await curate.vaults.applyDepositWhitelist({
       chainId: 42161,
       vault: VAULT,
       addresses: [ACCOUNT, other],
@@ -144,7 +146,7 @@ describe("createCurate actions", () => {
 
   test("roles.grantAll multicalls one grant per role", async () => {
     const { sent, clients } = fakeClients();
-    const curate = createCurate(clients);
+    const curate = createT3trisClient(clients);
     const roles = [VAULT_SETTLE_ROLE, VAULT_PAUSE_ROLE];
     await curate.roles.grantAll({ chainId: 42161, vault: VAULT, account: ACCOUNT, roles });
     const expected = encodeMulticall(
@@ -155,17 +157,17 @@ describe("createCurate actions", () => {
 
   test("oracle.setTotalAssets targets the oracle, not the vault", async () => {
     const { sent, clients } = fakeClients();
-    const curate = createCurate(clients);
-    await curate.oracle.setTotalAssets({ chainId: 42161, oracle: ORACLE, totalAssets: 42n });
+    const curate = createT3trisClient(clients);
+    await curate.oracles.setTotalAssets({ chainId: 42161, oracle: ORACLE, totalAssets: 42n });
     expect(sent[0]?.to).toBe(ORACLE);
     expect(sent[0]?.data).toBe(encodeCall(curateOracle.setTotalAssets, [42n]));
   });
 
   test("vault.updateSharesBatched targets the vault with receivers and values", async () => {
     const { sent, clients } = fakeClients();
-    const curate = createCurate(clients);
+    const curate = createT3trisClient(clients);
     const other = "0x4444444444444444444444444444444444444444" as Address;
-    await curate.vault.updateSharesBatched({
+    await curate.vaults.updateSharesBatched({
       chainId: 42161,
       vault: VAULT,
       receivers: [ACCOUNT, other],
@@ -182,18 +184,23 @@ describe("createCurate actions", () => {
 
   test("an updateSharesBatched with no receivers is rejected before any tx", async () => {
     const { sent, clients } = fakeClients();
-    const curate = createCurate(clients);
+    const curate = createT3trisClient(clients);
     expect(
-      curate.vault.updateSharesBatched({ chainId: 42161, vault: VAULT, receivers: [], values: [] }),
+      curate.vaults.updateSharesBatched({
+        chainId: 42161,
+        vault: VAULT,
+        receivers: [],
+        values: [],
+      }),
     ).rejects.toThrow(/at least one receiver/);
     expect(sent).toHaveLength(0);
   });
 
   test("a whitelist batch with no addresses is rejected before any tx", async () => {
     const { sent, clients } = fakeClients();
-    const curate = createCurate(clients);
+    const curate = createT3trisClient(clients);
     expect(
-      curate.vault.applyWithdrawWhitelist({
+      curate.vaults.applyWithdrawWhitelist({
         chainId: 42161,
         vault: VAULT,
         addresses: [],
