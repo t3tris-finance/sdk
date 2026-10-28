@@ -1,193 +1,196 @@
-# @t3tris/sdk
+# T3tris SDK
 
-Typed client for the T3tris API (`/v1`) plus the on-chain action engine.
-The client is a typed wrapper: API calls go to `/v1`, and wallet actions are
-sent by the connected wallet.
+TypeScript client for the T3tris API, with wallet helpers for on-chain vault actions.
+Read vault data and portfolios from your backend, subscribe to live events, or build
+deposit and curator flows with a wallet your app already connects.
 
 ## Install
 
+The SDK is available from this public GitHub repository. It is not on npm yet.
+With [Bun](https://bun.sh):
+
 ```sh
-npm install @t3tris/sdk   # or: bun add / pnpm add / yarn add
+bun add git+https://github.com/t3tris-finance/sdk.git#5987866a3eb197bd7eab6d082060159775836bdb
 ```
 
-## Quick start
+No SSH key or GitHub account is required. This command pins a specific revision
+for reproducible installs. The GitHub package exports TypeScript source, so use
+Bun or a TypeScript-aware bundler such as the one in Next.js or Vite. Plain Node.js
+execution of these sources is not the supported installation path.
+
+To try calls in a UI, see the [playground](https://github.com/t3tris-finance/playground).
+
+## First API call
+
+Create a customer API key in [T3tris Curate](https://curate.t3tris.finance/premium).
+Set these variables on your **server**:
+
+```sh
+export T3TRIS_API_URL=https://api.t3tris.finance
+export T3TRIS_API_KEY=sk_your_customer_key
+```
 
 ```ts
 import { createT3trisClient } from "@t3tris/sdk";
 
-// Both options fall back to the T3TRIS_API_URL / T3TRIS_API_KEY env vars.
-const client = createT3trisClient({ baseUrl: "https://api.t3tris.io", apiKey: "sk_…" });
-
-const vaults = await client.vaults.list();
+const client = createT3trisClient();
+const chains = await client.catalog.listChains();
 ```
 
-The `sk_…` API key identifies the caller. It is a secret: **server-side only**,
-never ship it to a browser. The API sends no CORS headers, so browsers cannot call
-it cross-origin — proxy through your own backend and keep the key there. Protected
-user writes take a per-call `{ session }` (`ss_…`) on top of the key. A session
-does not replace the key. See `client.auth` and `SessionAuth`.
+The client reads both environment variables by default. You can also pass
+`{ baseUrl, apiKey }` directly. The base URL is the API origin, without `/v1`.
 
-Client namespaces: `catalog`, `billing`, `vaults`, `accounts`, `events`, `keys`,
-`auth`. Live USD quotes are `Asset.latestPriceUsd` (with `latestPriceTs` and
-`latestPriceSource`) on `catalog.listAssets`. There is no separate prices or
-price-history resource.
+Keep your API key out of browser bundles. For a web app, call the SDK from your
+backend and expose a same-origin route to your UI. The API does not allow
+cross-origin browser requests.
 
-`billing.getPricing()` returns the public commercial configuration.
-`billing.getUsage()` returns the calling key's usage and the organization quota
-for the current cycle (`UsageSummary`: one `key` meter and one `org` meter).
-Per-member and per-key breakdowns are not on this client.
+## API resources
 
-Starter and add-on amounts come from `client.billing.getPricing()`. Convert cents
-with `usdcUnitsFromCents` (1 cent = 10_000 USDC base units). Do not hardcode a price.
+| Namespace | Use it for |
+| --- | --- |
+| `catalog` | Chains, assets, and latest USD asset quotes |
+| `vaults` | Vault details, history, composition, activity, governance, and curator content |
+| `accounts` | Address-based portfolios, positions, operated vaults, activity, and favorites |
+| `events` | Polling events or subscribing to the live stream |
+| `keys` | Looking up vaults and managing the calling key's vault attachments |
+| `billing` | Current pricing, the calling key's usage, and organisation quota |
+| `auth` | Email or SIWE login, session identity, and logout |
 
-## Transport and retries
+### Vault access and pagination
 
-Every call has a 15-second deadline by default. Configure `requestOptions` when
-constructing the client to set an `AbortSignal`, timeout, or a number of retry
-attempts. Retries are opt-in and apply only to safe GET requests; writes are
-never retried automatically because `/v1` does not expose idempotency keys yet.
+Customer keys see their attached vaults. A new key with no attachments returns an
+empty vault list. Attach vaults in Curate, or use a key with the `manage` scope:
 
 ```ts
+const matches = await client.keys.lookupVaults({ address: "0x..." });
+const vault = matches[0];
+
+if (vault) {
+  await client.keys.attachVault({ chainId: vault.chainId, address: vault.address });
+}
+
+const page = await client.vaults.list({ limit: 20 });
+if (page.nextCursor) {
+  const nextPage = await client.vaults.list({ limit: 20, cursor: page.nextCursor });
+}
+```
+
+Replace `0x...` with a full vault address. An attachment counts against your
+organisation's vault quota. `chainId` is required when the address exists on more
+than one chain. Detach with `client.keys.detachVault({ address, chainId })`.
+
+Paginated methods return `{ items, nextCursor? }`. Reuse the same filters when
+requesting the next page. Methods such as `vaults.getMany` and `keys.lookupVaults`
+return arrays instead. Asset quotes are included in
+`client.catalog.listAssets()` as `latestPriceUsd` when a price is available.
+
+### Sessions and protected writes
+
+Your `sk_` key authenticates every API call. Writes such as changing favorites or
+curator metadata also require an `ss_` session proving the user's identity:
+
+```ts
+const session = await client.auth.loginEmail({
+  email: "you@example.com",
+  password: process.env.T3TRIS_PASSWORD!,
+});
+
+const identity = await client.auth.whoami({ session: session.token });
+await client.auth.logout({ session: session.token });
+```
+
+For wallet identity, call `auth.createSiweNonce`, have the wallet sign the exact
+returned message, then call `auth.verifySiwe({ message, signature })`. Pass the
+returned token as the `{ session }` argument on protected methods.
+
+Email sessions have no wallet and cannot authorise vault-content writes.
+Wallet writes are permission-checked by the API. Store session tokens securely
+on your backend, for example behind an httpOnly session cookie in a web app.
+
+### Live events
+
+Live subscriptions require the `stream` scope on your API key. A session token
+cannot open a stream.
+
+```ts
+const controller = new AbortController();
+const stop = setTimeout(() => controller.abort(), 30_000);
+
+try {
+  for await (const event of client.events.subscribe({}, { signal: controller.signal })) {
+    // Handle event.type and event.data in your application.
+  }
+} finally {
+  clearTimeout(stop);
+}
+```
+
+The SDK reconnects after connection failures. Use the subscription's `onProgress`
+callback to persist a resume cursor, then pass it as `since` on a later
+subscription. For polling, use `client.events.list({ after })`.
+
+## Timeouts and errors
+
+Requests time out after 15 seconds by default. Retries are opt-in and apply only
+to safe GET requests. Writes are never retried automatically.
+
+```ts
+import { ApiError, createT3trisClient } from "@t3tris/sdk";
+
 const client = createT3trisClient({
-  baseUrl: "https://api.t3tris.io",
-  apiKey: process.env.T3TRIS_API_KEY,
   requestOptions: { timeoutMs: 10_000, retries: 2 },
 });
+
+try {
+  const usage = await client.billing.getUsage();
+} catch (error) {
+  if (error instanceof ApiError) {
+    // Inspect error.status, error.code, and error.requestId.
+    // On 429, respect error.retryAfterMs before trying again.
+  }
+  throw error;
+}
 ```
 
-`ApiError` carries `status`, stable `code`, `requestId`, `retryAfterMs`, and the
-response `headers`. On `429`, wait for `retryAfterMs` before issuing a new
-request; do not rely on automatic retries for quota or rate-limit errors.
+`ApiError` also exposes response `headers`. Quota and rate-limit errors are not
+retried automatically. You can pass an `AbortSignal` in `requestOptions.signal`
+to cancel requests.
 
-## Supported surface
+## On-chain actions
 
-These subpaths are the public, SemVer-covered contract. Nothing else is public —
-do not deep-import into `dist/` internals.
+Wallet transactions use separate imports and do not need an API key. Your app
+owns the connect UI and network switching. The SDK has no wagmi or RainbowKit
+dependency.
 
-| Subpath               | Contents                                                                 |
-| --------------------- | ------------------------------------------------------------------------ |
-| `@t3tris/sdk`         | API client (`createT3trisClient`, `ApiError`) + all public entities      |
-| `@t3tris/sdk/entities`| Public types only (`Vault`, `Position`, `StreamEvent`, `Address`, …)     |
-| `@t3tris/sdk/curate`  | Curator on-chain admin: `createCurate` (vault/roles/oracle), role IDs    |
-| `@t3tris/sdk/wallet`  | Depositor engine: flows, Permit2 funding, factory, wallet client         |
+| Import | Contents |
+| --- | --- |
+| `@t3tris/sdk` | API client, `ApiError`, and public data types |
+| `@t3tris/sdk/entities` | Data types such as `Vault`, `Position`, and `VaultRef` |
+| `@t3tris/sdk/wallet` | Wallet adapters, deposit/withdraw flows, Permit2 funding, and the step executor |
+| `@t3tris/sdk/curate` | `createCurate` for vault administration, roles, and oracle actions |
 
-`@t3tris/sdk/curate` and `@t3tris/sdk/wallet` build and send **on-chain**
-transactions through the wallet client you pass in. They do not call the API
-and they do not connect a wallet. A viem `WalletClient`, a wagmi
-`useWalletClient()` result, or any object with `account`, `getChainId`,
-`switchChain`, `sendTransaction`, and `signTypedData` goes through
-`bindEngineClients`. `createEngineClients(provider)` is the same adapter for a
-raw EIP-1193 provider. `switchChain` is yours: wagmi adds a missing network,
-a raw viem client only switches.
-Wallet defaults below are permissive. This package does not tighten them:
+Use `bindEngineClients({ walletClient, publicClient })` with your existing viem
+or wagmi clients. For a raw EIP-1193 provider, use `createEngineClients(provider)`.
+Pass the resulting clients to the transaction flows or `createCurate`.
+Import only the entry points above, rather than files under `src/` or `dist/`.
 
-- `depositSteps` / `requestDepositSteps` request an unlimited approval
-  (`maxUint256`) to Permit2, or to the vault when `strategy` is `"native"`.
-  Pass `approveAmount` for a finite amount.
-- `decreaseDepositSteps` defaults `minAmountOut` to `0` (zero slippage — no
-  floor on assets returned). Pass `minAmountOut` to set a floor.
-- `defaultSafeOracle` uses an unbounded upward deviation (`2^128 - 1`) and
-  100% down (`1e18`). Pass `bounds` to override either field.
-- `factoryOracleClone` is the zero-address clone sentinel (`address(0)`), not
-  a deployed oracle address. Passing it tells the factory to clone a fresh
-  SafeOracle.
+Review transaction parameters before requesting a signature:
 
-### Stability tiers
+- `depositSteps` and `requestDepositSteps` default to unlimited token approval.
+  Set `approveAmount` to limit it.
+- `decreaseDepositSteps` defaults `minAmountOut` to `0`, leaving no minimum asset
+  return. Set an explicit floor for slippage protection.
+- `defaultSafeOracle` defaults to an unbounded upward deviation and a 100%
+  downward deviation. Set `bounds` for your risk policy.
+- `factoryOracleClone` is a zero-address sentinel requesting a new SafeOracle
+  clone, not the address of an existing oracle.
 
-- **Core (`.` and `./entities`)** — customer data/API client. These are the
-  default integration surface and receive normal SemVer/deprecation support.
-- **On-chain (`./wallet` and `./curate`)** — explicitly public transaction
-  builders for depositor and curator wallets. They are versioned contracts, but
-  consumers must validate transaction intent in their own UI and keep injected
-  wallet permissions scoped. Raw ABIs, calldata plumbing, deployment salts, and
-  other module internals are intentionally not package subpaths.
-- **Not public** — any import outside the subpaths above, including deep imports
-  of `src/` or `dist/`. Those paths can change without a SemVer guarantee.
+## Compatibility
 
-## Runtime support
+ESM only. The API client targets Node.js 20+ after bundling/transpilation, or Bun.
+Live subscriptions need a global `WebSocket`, available in Node.js 22+ and Bun.
+Wallet helpers run in modern browsers through a bundler.
 
-- Node.js ≥ 20, ESM. `events.subscribe()` needs a global `WebSocket` → Node.js ≥ 22
-  (or any runtime providing one).
-- Modern browsers via a bundler (Vite/Next/esbuild/…). `wallet`/`curate` send
-  transactions through the wallet client you pass in.
-- ESM only in 0.x — there is no CommonJS build.
-
-## Versioning
-
-SemVer. While the package is `0.x`, minor releases may contain breaking changes;
-every breaking change is listed in [CHANGELOG.md](./CHANGELOG.md) with migration
-notes. Deprecations are announced at least one minor release before removal.
-
-Source and issues: https://github.com/t3tris-finance/sdk
-
-## Migration from the pre-release client
-
-The pre-release monorepo SDK was never published to a registry. If you integrated
-against a pre-release checkout:
-
-| Before (pre-release)                     | Now                                                        |
-| ---------------------------------------- | ---------------------------------------------------------- |
-| Ad-hoc REST calls / `lib/api` wrappers   | `createT3trisClient()` namespaces (`client.vaults.list`, …)|
-| `@t3tris/sdk/roles` helpers              | `@t3tris/sdk/curate` role constants (`VAULT_*_ROLE`, `roleId`) |
-| On-chain deposit/withdraw app code       | `@t3tris/sdk/wallet` flows + step engine                   |
-| `format` / `explorer` / `pnl` helpers    | No longer public — app-internal                            |
-
-## Packaging (maintainers)
-
-`@t3tris/sdk` is not on npmjs yet. Until the first release, the only installable
-artifact is the tarball from `bun run pack` (`.pack/t3tris-sdk-<version>.tgz`).
-
-This repository is the publishable `@t3tris/sdk`, extracted from
-[`packages/sdk`](https://github.com/t3tris-finance/monorepo/tree/main/packages/sdk)
-in the monorepo. The monorepo copy remains the workspace consumer. This
-repository is what gets published.
-
-The root manifest stays `private: true` and exports `src/`, so `bun test` and
-`tsc` resolve source without a build. `bun run pack` rebuilds `dist/`, stages
-`.pack/` with dist exports, and writes a tarball. The staged manifest records
-`repository`, `homepage`, and `bugs` for this repository. It stays `private`
-and does not set `license` or `publishConfig.access`.
-
-```sh
-bun install
-bun run lint
-bun run typecheck
-bun run test
-bun run build    # bundles dist/ (ESM + declarations)
-bun run pack     # stages .pack/ with the publish manifest + tarball
-bun run smoke    # pack + install/typecheck/bundle smoke tests on the tarball
-```
-
-`package.json` `version` and `SDK_VERSION` in `src/index.ts` must match. `pack`
-exits if they differ. Bump both in the same change, and add a changelog entry.
-
-### Publishing
-
-Publishing to npmjs is prepared and **disabled**.
-
-- [CI](.github/workflows/ci.yml) runs lint, typecheck, tests, and the pack
-  smoke test on pull requests and on pushes to `main`. It does not publish.
-- [Publish](.github/workflows/publish.yml) is triggered by a push to `main`
-  (and `workflow_dispatch`), but its job is gated with `if: false`. A merge
-  does not publish. `NPM_TOKEN` is not required while the job stays off.
-
-Do not run `npm publish` locally. The root package and the staged `.pack/`
-package are both private, and there is no `LICENSE` file. npm would reject
-the publish, and this repository is not licensed for redistribution yet.
-
-Before the first release, land one reviewed change that does all of the following:
-
-1. Add a `LICENSE` file and set the `license` field on the staged manifest in
-   `scripts/pack.ts`. The field is intentionally unset today.
-2. Set `private` to `false` on that staged manifest only. Leave the root
-   manifest `private: true` so `npm publish` at the repository root cannot
-   ship TypeScript source.
-3. Create an npm automation token that can publish `@t3tris/sdk` and store it
-   as the Actions secret `NPM_TOKEN`.
-4. In `.github/workflows/publish.yml`, replace `if: ${{ false }}` with
-   `if: true` (or delete the condition). The job still refuses a private or
-   unlicensed staged package before `npm publish --access public`.
-5. Confirm `version` and `SDK_VERSION` are the version you want on the registry.
-
-Provenance (`--provenance`) is left off because this repository is private.
-Add it once the repository is public.
+The SDK is currently `0.x`. Minor releases can contain breaking changes.
+See the [changelog](./CHANGELOG.md) before upgrading and use
+[GitHub issues](https://github.com/t3tris-finance/sdk/issues) to report bugs.

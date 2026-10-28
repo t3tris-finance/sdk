@@ -4,8 +4,8 @@ name: Publish
 #
 # DISABLED. The job condition is hard-off, so a merge cannot publish.
 # npmjs credentials are not configured, the staged manifest stays private,
-# and the package has no license. Enable only in a reviewed change, after
-# the checklist in README.md ("Publishing").
+# and the package has no license. Enabling publication requires a separate
+# reviewed change covering licensing, package metadata, and registry credentials.
 
 on:
   push:
