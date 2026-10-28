@@ -5,10 +5,22 @@
   "type": "module",
   "private": true,
   "exports": {
-    ".": "./src/index.ts",
-    "./curate": "./src/curate/index.ts",
-    "./entities": "./src/entities/index.ts",
-    "./wallet": "./src/wallet/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./curate": {
+      "types": "./dist/curate/index.d.ts",
+      "default": "./dist/curate/index.js"
+    },
+    "./entities": {
+      "types": "./dist/entities/index.d.ts",
+      "default": "./dist/entities/index.js"
+    },
+    "./wallet": {
+      "types": "./dist/wallet/index.d.ts",
+      "default": "./dist/wallet/index.js"
+    }
   },
   "files": [
     "dist"

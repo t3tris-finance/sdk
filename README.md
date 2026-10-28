@@ -9,8 +9,8 @@ API credentials stay on your backend. Your browser uses the wallet your app has 
 bun add git+https://github.com/t3tris-finance/sdk.git
 ```
 
-The public GitHub package exports TypeScript source. Use Bun or a TypeScript-aware
-bundler such as Next.js or Vite. Commit your lockfile to pin the resolved revision.
+The public GitHub package includes compiled ESM and TypeScript declarations, ready
+for Node.js, Bun, Next.js or Vite. Commit your lockfile to pin the resolved revision.
 The package is not published on npm yet.
 
 ## API calls (server)

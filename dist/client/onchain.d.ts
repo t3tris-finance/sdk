@@ -1,0 +1,432 @@
+import { type Address, type EIP1193Provider } from "viem";
+import type { PublicClientSource, WalletClientSource } from "../wallet/engine.js";
+export type WalletOptions = {
+    walletClient: WalletClientSource;
+    publicClient: PublicClientSource;
+    provider?: never;
+    account?: never;
+} | {
+    provider: EIP1193Provider;
+    account: Address;
+    walletClient?: never;
+    publicClient?: never;
+};
+export declare function createOnchainClient(options: WalletOptions): {
+    vaults: {
+        read: {
+            previewAddress: (input: {
+                factory: Address;
+                deployer: Address;
+                salt: import("viem").Hex;
+            } & {
+                chainId: number;
+            }) => Promise<`0x${string}`>;
+            asset: (input: {
+                vault: Address;
+            } & {
+                chainId: number;
+            }) => Promise<`0x${string}`>;
+            totalSupply: (input: {
+                vault: Address;
+            } & {
+                chainId: number;
+            }) => Promise<bigint>;
+            maxDeposit: (input: {
+                vault: Address;
+                receiver: Address;
+            } & {
+                chainId: number;
+            }) => Promise<bigint>;
+            maxRedeem: (input: {
+                vault: Address;
+                owner: Address;
+            } & {
+                chainId: number;
+            }) => Promise<bigint>;
+            previewDeposit: (input: {
+                vault: Address;
+                amount: bigint;
+            } & {
+                chainId: number;
+            }) => Promise<bigint>;
+            previewRedeem: (input: {
+                vault: Address;
+                shares: bigint;
+            } & {
+                chainId: number;
+            }) => Promise<bigint>;
+            previewClaimDeposit: (input: {
+                vault: Address;
+                owner: Address;
+            } & {
+                chainId: number;
+            }) => Promise<bigint>;
+            curator: (input: {
+                vault: Address;
+            } & {
+                chainId: number;
+            }) => Promise<`0x${string}`>;
+            isOpen: (input: {
+                vault: Address;
+            } & {
+                chainId: number;
+            }) => Promise<boolean>;
+            previewSettleAll: (input: {
+                vault: Address;
+                feeClaimType?: import("../index.js").FeeClaimType;
+            } & {
+                chainId: number;
+            }) => Promise<readonly unknown[]>;
+            previewSettleDeposits: (input: {
+                vault: Address;
+                feeClaimType?: import("../index.js").FeeClaimType;
+            } & {
+                chainId: number;
+            }) => Promise<readonly unknown[]>;
+            previewSettleRedemptions: (input: {
+                vault: Address;
+                fullClaim?: boolean;
+            } & {
+                chainId: number;
+            }) => Promise<readonly unknown[]>;
+            previewOpen: (input: {
+                vault: Address;
+                feeClaimType?: import("../index.js").FeeClaimType;
+            } & {
+                chainId: number;
+            }) => Promise<readonly unknown[]>;
+            previewEnableEndOfFund: (input: {
+                vault: Address;
+                feeClaimType?: import("../index.js").FeeClaimType;
+            } & {
+                chainId: number;
+            }) => Promise<readonly unknown[]>;
+            previewCloseFund: (input: {
+                vault: Address;
+            } & {
+                chainId: number;
+            }) => Promise<bigint>;
+            previewClaimFees: (input: {
+                vault: Address;
+                shares: bigint;
+            } & {
+                chainId: number;
+            }) => Promise<bigint>;
+            balanceOf: (input: {
+                vault: Address;
+                owner: Address;
+            } & {
+                chainId: number;
+            }) => Promise<bigint>;
+            nextEntryFee: (input: {
+                vault: Address;
+            } & {
+                chainId: number;
+            }) => Promise<import("../index.js").QueuedFee>;
+            nextExitFee: (input: {
+                vault: Address;
+            } & {
+                chainId: number;
+            }) => Promise<import("../index.js").QueuedFee>;
+            nextPerformanceFee: (input: {
+                vault: Address;
+            } & {
+                chainId: number;
+            }) => Promise<import("../index.js").QueuedFee>;
+            nextManagementFee: (input: {
+                vault: Address;
+            } & {
+                chainId: number;
+            }) => Promise<import("../index.js").QueuedManagementFee>;
+        };
+        create: (input: import("../index.js").DeployVaultArgs) => Promise<import("../index.js").TransactionResult>;
+        deposit: (input: import("../wallet/flows.js").DepositInput) => Promise<import("../index.js").TransactionResult>;
+        requestDeposit: (input: import("../wallet/flows.js").RequestDepositInput) => Promise<import("../index.js").TransactionResult>;
+        redeem: (input: import("../wallet/flows.js").RedeemInput) => Promise<import("../index.js").TransactionResult>;
+        requestRedeem: (input: import("../wallet/flows.js").RequestRedeemInput) => Promise<import("../index.js").TransactionResult>;
+        decreaseDepositRequest: (input: import("../wallet/flows.js").DecreaseDepositInput) => Promise<import("../index.js").TransactionResult>;
+        decreaseRedeemRequest: (input: import("../wallet/flows.js").DecreaseRedeemInput) => Promise<import("../index.js").TransactionResult>;
+        claimDeposit: (input: import("../wallet/flows.js").ClaimDepositInput) => Promise<import("../index.js").TransactionResult>;
+        claimRedeem: (input: import("../wallet/flows.js").ClaimRedeemInput) => Promise<import("../index.js").TransactionResult>;
+        settle: (input: import("../curate/vault.js").SettleInput) => Promise<import("../index.js").TransactionResult>;
+        setNextManagementFee: (input: import("../curate/vault.js").Target & {
+            wad: bigint;
+            days: number;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setNextPerformanceFee: (input: import("../curate/vault.js").Target & {
+            wad: bigint;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setNextEntryFee: (input: import("../curate/vault.js").Target & {
+            wad: bigint;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setNextExitFee: (input: import("../curate/vault.js").Target & {
+            wad: bigint;
+        }) => Promise<import("../index.js").TransactionResult>;
+        claimFees: (input: import("../curate/vault.js").Target & {
+            shares: bigint;
+            unsafe?: boolean;
+            minAssetsOut?: bigint;
+            permit2Data?: import("viem").Hex;
+        }) => Promise<import("../index.js").TransactionResult>;
+        updateAccruedFees: (input: import("../curate/vault.js").Target) => Promise<import("../index.js").TransactionResult>;
+        updateSharesBatched: (input: import("../curate/vault.js").Target & {
+            receivers: readonly Address[];
+            values: readonly bigint[];
+        }) => Promise<import("../index.js").TransactionResult>;
+        setDepositEnabled: (input: import("../curate/vault.js").Target & {
+            enabled: boolean;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setTransferEnabled: (input: import("../curate/vault.js").Target & {
+            enabled: boolean;
+        }) => Promise<import("../index.js").TransactionResult>;
+        pause: (input: import("../curate/vault.js").Target) => Promise<import("../index.js").TransactionResult>;
+        unpause: (input: import("../curate/vault.js").Target) => Promise<import("../index.js").TransactionResult>;
+        open: (input: import("../curate/vault.js").Target & {
+            feeClaimType?: import("../index.js").FeeClaimType;
+            unsafe?: boolean;
+            permit2Data?: import("viem").Hex;
+        }) => Promise<import("../index.js").TransactionResult>;
+        close: (input: import("../curate/vault.js").Target & {
+            unsafe?: boolean;
+            minAssetsOut?: bigint;
+        }) => Promise<import("../index.js").TransactionResult>;
+        enableEndOfFund: (input: import("../curate/vault.js").Target & {
+            feeClaimType?: import("../index.js").FeeClaimType;
+            unsafe?: boolean;
+            permit2Data?: import("viem").Hex;
+        }) => Promise<import("../index.js").TransactionResult>;
+        disableEndOfFund: (input: import("../curate/vault.js").Target & {
+            unsafe?: boolean;
+            closeVault?: boolean;
+            minAssetsOut?: bigint;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setDepositWhitelistEnabled: (input: import("../curate/vault.js").Target & {
+            enabled: boolean;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setWithdrawWhitelistEnabled: (input: import("../curate/vault.js").Target & {
+            enabled: boolean;
+        }) => Promise<import("../index.js").TransactionResult>;
+        applyDepositWhitelist: (input: import("../curate/vault.js").WhitelistBatchInput) => Promise<import("../index.js").TransactionResult>;
+        applyWithdrawWhitelist: (input: import("../curate/vault.js").WhitelistBatchInput) => Promise<import("../index.js").TransactionResult>;
+        setShareNameAndSymbol: (input: import("../curate/vault.js").Target & {
+            name: string;
+            symbol: string;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setIpfsHash: (input: import("../curate/vault.js").Target & {
+            hash: string;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setCurator: (input: import("../curate/vault.js").Target & {
+            curator: Address;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setFeeRecipient: (input: import("../curate/vault.js").Target & {
+            feeRecipient: Address;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setOracle: (input: import("../curate/vault.js").Target & {
+            oracle: Address;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setT3treasury: (input: import("../curate/vault.js").Target & {
+            treasury: Address;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setSyncSilo: (input: import("../curate/vault.js").Target & {
+            silo: Address;
+            unsafeOut?: boolean;
+            unsafeIn?: boolean;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setDepositSilo: (input: import("../curate/vault.js").Target & {
+            silo: Address;
+            unsafeOut?: boolean;
+            unsafeIn?: boolean;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setRedeemSilo: (input: import("../curate/vault.js").Target & {
+            silo: Address;
+            unsafeOut?: boolean;
+            unsafeIn?: boolean;
+        }) => Promise<import("../index.js").TransactionResult>;
+        claimSilosPnl: (input: import("../curate/vault.js").Target & {
+            sync?: boolean;
+            deposit?: boolean;
+            unsafe?: boolean;
+            redeemRequestId?: bigint;
+        }) => Promise<import("../index.js").TransactionResult>;
+        sweep: (input: import("../curate/vault.js").Target & {
+            token: Address;
+        }) => Promise<import("../index.js").TransactionResult>;
+    };
+    roles: {
+        read: import("../curate/shared.js").Reads<{
+            has: (i: {
+                vault: Address;
+                role: import("viem").Hex;
+                account: Address;
+            }) => Promise<boolean>;
+            adminOf: (i: {
+                vault: Address;
+                role: import("viem").Hex;
+            }) => Promise<`0x${string}`>;
+            memberCount: (i: {
+                vault: Address;
+                role: import("viem").Hex;
+            }) => Promise<bigint>;
+            members: (i: {
+                vault: Address;
+                role: import("viem").Hex;
+            }) => Promise<readonly `0x${string}`[]>;
+            defaultAdminRole: (i: {
+                vault: Address;
+            }) => Promise<`0x${string}`>;
+            nextDefaultAdminRecipient: (i: {
+                vault: Address;
+            }) => Promise<`0x${string}`>;
+            nextGovernanceAdminRecipient: (i: {
+                vault: Address;
+            }) => Promise<`0x${string}`>;
+        }>;
+        grant: (input: import("../curate/roles.js").Target & {
+            role: import("viem").Hex;
+            account: Address;
+        }) => Promise<import("../index.js").TransactionResult>;
+        revoke: (input: import("../curate/roles.js").Target & {
+            role: import("viem").Hex;
+            account: Address;
+        }) => Promise<import("../index.js").TransactionResult>;
+        renounceRole: (input: import("../curate/roles.js").Target & {
+            role: import("viem").Hex;
+            account: Address;
+        }) => Promise<import("../index.js").TransactionResult>;
+        grantAll: (input: import("../curate/roles.js").Target & {
+            account: Address;
+            roles: readonly import("viem").Hex[];
+        }) => Promise<import("../index.js").TransactionResult>;
+        grantBatch: (input: import("../curate/roles.js").Target & {
+            calls: readonly {
+                role: import("viem").Hex;
+                account: Address;
+            }[];
+        }) => Promise<import("../index.js").TransactionResult>;
+        revokeBatch: (input: import("../curate/roles.js").Target & {
+            calls: readonly {
+                role: import("viem").Hex;
+                account: Address;
+            }[];
+        }) => Promise<import("../index.js").TransactionResult>;
+        initGrantAdminRole: (input: import("../curate/roles.js").Target & {
+            account: Address;
+            role: import("viem").Hex;
+        }) => Promise<import("../index.js").TransactionResult>;
+        acceptAdminRole: (input: import("../curate/roles.js").Target & {
+            role: import("viem").Hex;
+        }) => Promise<import("../index.js").TransactionResult>;
+        cancelGrantAdminRole: (input: import("../curate/roles.js").Target & {
+            role: import("viem").Hex;
+        }) => Promise<import("../index.js").TransactionResult>;
+        applyAdminBurn: (input: import("../curate/roles.js").Target & {
+            role: import("viem").Hex;
+        }) => Promise<import("../index.js").TransactionResult>;
+    };
+    oracles: {
+        read: import("../curate/shared.js").Reads<{
+            totalAssets: (i: {
+                oracle: Address;
+            }) => Promise<bigint>;
+            maxDeviationUp: (i: {
+                oracle: Address;
+            }) => Promise<bigint>;
+            maxDeviationDown: (i: {
+                oracle: Address;
+            }) => Promise<bigint>;
+            admin: (i: {
+                oracle: Address;
+            }) => Promise<`0x${string}`>;
+            defaultAdminDelay: (i: {
+                oracle: Address;
+            }) => Promise<bigint>;
+            pendingAdmin: (i: {
+                oracle: Address;
+            }) => Promise<{
+                pending: `0x${string}`;
+                delay: number;
+            }>;
+            owner: (i: {
+                oracle: Address;
+            }) => Promise<`0x${string}`>;
+            has: (i: {
+                oracle: Address;
+                role: import("viem").Hex;
+                account: Address;
+            }) => Promise<boolean>;
+            lastSavedPps: (i: {
+                oracle: Address;
+            }) => Promise<bigint>;
+        }>;
+        setTotalAssets: (input: import("../curate/oracle.js").Target & {
+            totalAssets: bigint;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setMaxPricePerShareDeviationUpWad: (input: import("../curate/oracle.js").Target & {
+            wad: bigint;
+        }) => Promise<import("../index.js").TransactionResult>;
+        setMaxPricePerShareDeviationDownWad: (input: import("../curate/oracle.js").Target & {
+            wad: bigint;
+        }) => Promise<import("../index.js").TransactionResult>;
+        beginDefaultAdminTransfer: (input: import("../curate/oracle.js").Target & {
+            newAdmin: Address;
+        }) => Promise<import("../index.js").TransactionResult>;
+        acceptDefaultAdminTransfer: (input: import("../curate/oracle.js").Target) => Promise<import("../index.js").TransactionResult>;
+        cancelDefaultAdminTransfer: (input: import("../curate/oracle.js").Target) => Promise<import("../index.js").TransactionResult>;
+        changeDefaultAdminDelay: (input: import("../curate/oracle.js").Target & {
+            newDelay: number;
+        }) => Promise<import("../index.js").TransactionResult>;
+        rollbackDefaultAdminDelay: (input: import("../curate/oracle.js").Target) => Promise<import("../index.js").TransactionResult>;
+        grant: (input: import("../curate/oracle.js").Target & {
+            role: import("viem").Hex;
+            account: Address;
+        }) => Promise<import("../index.js").TransactionResult>;
+        revoke: (input: import("../curate/oracle.js").Target & {
+            role: import("viem").Hex;
+            account: Address;
+        }) => Promise<import("../index.js").TransactionResult>;
+        renounce: (input: import("../curate/oracle.js").Target & {
+            role: import("viem").Hex;
+            account: Address;
+        }) => Promise<import("../index.js").TransactionResult>;
+        applyRoles: (input: import("../curate/oracle.js").Target & {
+            calls: readonly {
+                op: "grant" | "revoke";
+                role: import("viem").Hex;
+                account: Address;
+            }[];
+        }) => Promise<import("../index.js").TransactionResult>;
+    };
+    tokens: {
+        balanceOf: (input: {
+            token: Address;
+            owner: Address;
+        } & {
+            chainId: number;
+        }) => Promise<bigint>;
+        allowance: (input: {
+            token: Address;
+            owner: Address;
+            spender: Address;
+        } & {
+            chainId: number;
+        }) => Promise<bigint>;
+        approve: (input: {
+            chainId: number;
+            token: Address;
+            spender: Address;
+            amount: bigint;
+        }) => Promise<import("../index.js").TransactionResult>;
+    };
+    permit2: import("../curate/shared.js").Reads<{
+        allowance: (input: {
+            owner: Address;
+            token: Address;
+            spender: Address;
+        }) => Promise<{
+            amount: bigint;
+            expiration: number;
+            nonce: number;
+        }>;
+    }>;
+};
+export type T3trisWalletClient = ReturnType<typeof createOnchainClient>;
