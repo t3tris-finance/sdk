@@ -1,21 +1,21 @@
 # T3tris SDK
 
-One TypeScript constructor for the T3tris API and on-chain vault actions.
-API credentials stay on your backend. Your browser uses the wallet your app has already connected.
+A TypeScript client for T3tris vault data and on-chain actions.
+Use API credentials on your backend or connect an existing wallet to submit transactions.
 
-## Install
+## Installation
 
 ```sh
 bun add git+https://github.com/t3tris-finance/sdk.git
 ```
 
-The public GitHub package includes compiled ESM and TypeScript declarations, ready
-for Node.js, Bun, Next.js or Vite. Commit your lockfile to pin the resolved revision.
-The package is not published on npm yet.
+The package includes ESM JavaScript and TypeScript declarations. Commit your lockfile
+to keep installations reproducible.
 
-## API calls (server)
+## Read vault data
 
-Get a customer key from [Curate](https://curate.t3tris.finance/premium).
+Create an API key in [T3tris Curate](https://curate.t3tris.finance/premium), then
+configure the client on your server:
 
 ```ts
 import { createT3trisClient } from "@t3tris/sdk";
@@ -29,82 +29,72 @@ const chains = await client.catalog.listChains();
 const vaults = await client.vaults.list({ limit: 20 });
 ```
 
-Both settings can also come from `T3TRIS_API_URL` and `T3TRIS_API_KEY`.
-The API origin has no `/v1` suffix. Customer vault lists contain only the vaults
-attached to that key. Paginated methods return `{ items, nextCursor? }`.
+You can also set `T3TRIS_API_URL` and `T3TRIS_API_KEY` and call `createT3trisClient()`
+without arguments. The base URL is the API origin, without `/v1`.
 
-| Namespace | Methods cover |
+**Keep API keys on your server.** For browser applications, expose a route on your
+own backend. The T3tris API does not allow cross-origin browser requests.
+
+### Available resources
+
+| Namespace | Resources |
 | --- | --- |
-| `catalog` | Chains, assets and latest USD quotes |
-| `vaults` | Details, history, composition, activity, governance and curator content |
+| `catalog` | Chains, assets and latest USD prices |
+| `vaults` | Vault details, history, composition, activity, governance and content |
 | `accounts` | Portfolios, positions, activity and favorites |
-| `events` | Polling and live subscriptions |
-| `keys` | Vault lookup, attachments and detachments |
+| `events` | Event history and live subscriptions |
+| `keys` | Vault lookup and key attachments |
 | `billing` | Pricing and usage |
-| `auth` | SIWE/email sessions, identity and logout |
+| `auth` | SIWE and email authentication, sessions and logout |
 
-Keep API keys out of client components. Browser UI should call your own backend.
-The API does not enable cross-origin browser requests. Protected writes take an
-additional `{ session: "ss_..." }` argument. Email sessions cannot authorise wallet
-writes. Live subscriptions require the key's `stream` scope. Attaching vaults
-programmatically requires `manage`.
+Vault queries return the vaults attached to your key. Attach them in Curate or use
+`client.keys.attachVault({ address, chainId })` with the `manage` scope.
+Paginated methods return `{ items, nextCursor? }`. Pass `nextCursor` as `cursor`
+with the same filters to retrieve the next page.
 
-Requests have a 15-second default timeout. Configure `requestOptions` for a
-shorter deadline, cancellation or optional GET retries. Writes are never retried.
-`ApiError` exposes `status`, `code`, `requestId`, `retryAfterMs` and response headers.
+Protected writes require a user session in addition to the API key. Authenticate
+with `client.auth`, then pass `{ session: token }` to the protected method.
+Vault-content writes require an authorised wallet session, not an email session.
 
-## On-chain calls (wallet)
+Live events use `client.events.subscribe()` and require the `stream` scope.
+Pass an `AbortSignal` to stop a subscription. Persist the `onProgress` cursor and
+supply it as `since` to resume later.
 
-Pass existing viem or wagmi clients directly. No adapter, engine or separate
-curator client is needed.
+## Submit an on-chain action
+
+Pass your connected viem or wagmi clients directly:
 
 ```ts
 import { createT3trisClient } from "@t3tris/sdk";
-import { createPublicClient, createWalletClient, custom } from "viem";
 
-// Your app supplies its connected provider and selected account.
-const transport = custom(provider);
-const walletClient = createWalletClient({ account, transport });
-const publicClient = createPublicClient({ transport });
 const client = createT3trisClient({ walletClient, publicClient });
-
-// Your app handles network selection before invoking the SDK.
-await walletClient.switchChain({ id: 42161 });
 
 const result = await client.vaults.setNextEntryFee({
   chainId: 42161,
   vault,
   wad: 10n ** 16n, // 1%, queued according to the vault's fee rules
 });
+```
 
-// Receipt waiting is explicit and belongs to your app.
+With an EIP-1193 provider, use `createT3trisClient({ provider, account })` instead.
+No API key is required. Your application connects the wallet and selects the network
+before invoking an action. Recreate the client when the selected account changes.
+
+Each write checks the wallet and RPC network, simulates the transaction and submits
+it once. It does not switch networks, approve tokens, sign permits, claim shares,
+retry or wait for a receipt as a side effect.
+
+The result is `{ status, hash }`:
+
+- **`submitted`**: the transaction was broadcast. Wait for its receipt to confirm execution.
+- **`proposed`**: a contract wallet returned a proposal identifier. Complete execution in that wallet.
+
+```ts
 if (result.status === "submitted") {
   const receipt = await publicClient.waitForTransactionReceipt({ hash: result.hash });
   if (receipt.status === "reverted") throw new Error("Transaction reverted");
 }
 ```
-
-Or use `createT3trisClient({ provider, account })` with an EIP-1193 provider and
-an already-selected address. Construction never opens a connection popup.
-Recreate the client when the selected wallet/account changes.
-
-### One call, one explicit action
-
-An on-chain write validates the wallet and RPC chain, simulates the requested
-transaction, and submits it once. It returns `{ status, hash }` without waiting
-for mining. `submitted` means broadcast, not confirmed. `proposed` means a contract
-wallet returned a proposal identifier that must be executed in that wallet.
-EIP-7702 delegated EOAs return `submitted`.
-
-The SDK never switches chains, approves tokens, signs permits, claims pending
-shares, retries a transaction, or waits for a receipt as a side effect of another
-action. A wrong network throws `ChainMismatchError` before any transaction.
-
-For a deposit, your app checks `client.tokens.allowance`, explicitly calls
-`client.tokens.approve` if needed, waits for approval execution, and then calls
-`client.vaults.deposit`. Approval amounts are explicit. A redeem never claims
-deposit shares automatically. Settlement and fee claims never fund the curator
-implicitly. Use native allowances or provide an explicitly signed `permit2Data`.
 
 ### Create a vault
 
@@ -112,45 +102,61 @@ implicitly. Use native allowances or provide an explicitly signed `permit2Data`.
 const result = await client.vaults.create({
   chainId,
   factory,
-  salt,       // bytes32, unique for this deployment
-  params,     // VaultDeployParams: asset, roles, fees, lifecycle flags and metadata
-  safeOracle, // explicit owner and deviation bounds for a fresh SafeOracle
-  oracle,     // existing oracle address, or factoryOracleClone for a new clone
+  salt,
+  params,
+  safeOracle,
+  oracle,
 });
 ```
 
-`client.vaults.read.previewAddress({ chainId, factory, deployer, salt })` predicts
-the address. Creation does not attach the vault to an API key.
-`defaultSafeOracle` and `factoryOracleClone` are exported helpers. The default
-oracle bounds are permissive (unbounded up, 100% down), so choose explicit bounds
-for your vault's risk policy.
+`params` is a `VaultDeployParams` object containing the asset, owner, curator, fees,
+metadata and lifecycle flags. Use a unique bytes32 `salt` for each deployment.
+Provide an existing oracle address, or `factoryOracleClone` to create a SafeOracle
+with your chosen owner and deviation bounds.
+
+Predict the address with
+`client.vaults.read.previewAddress({ chainId, factory, deployer, salt })`.
+Creation does not attach the vault to an API key.
 
 ### On-chain resources
 
 | Namespace | Actions and reads |
 | --- | --- |
-| `vaults` | Create, deposit/redeem/request/claim, settlement, fees, lifecycle, whitelist, metadata, silos and recovery |
-| `vaults.read` | Deposit/redeem previews, limits, balances, settlement previews, queued fees and factory address preview |
-| `roles` / `roles.read` | Vault roles, batched changes, admin transfers and membership |
-| `oracles` / `oracles.read` | Valuations, deviation bounds, roles and admin transfers |
-| `tokens` | Explicit approve, allowance and balance reads |
-| `permit2` | Allowance/nonce reads for apps preparing their own signatures |
+| `vaults` | Creation, deposits, redemptions, requests, claims, settlement, fees, lifecycle and configuration |
+| `vaults.read` | Previews, limits, balances, queued fees and deployment address prediction |
+| `roles` / `roles.read` | Vault permissions, batches, admin transfers and membership |
+| `oracles` / `oracles.read` | Valuations, deviation bounds, permissions and admin transfers |
+| `tokens` | Token approval, allowance and balance |
+| `permit2` | Allowance and nonce reads |
 
-All on-chain reads take `chainId` and verify the supplied RPC's network.
-Amounts use raw token units (`bigint`). Fee rates use WAD (`10^18 = 100%`).
-`decreaseDepositRequest` requires an explicit `minAmountOut`.
-Batch methods submit one atomic multicall explicitly requested by the caller.
+Every on-chain call takes `chainId`. Amounts use raw token units as `bigint`.
+Fee rates use WAD: `10^18` represents 100%.
 
-## Examples and compatibility
+For deposits, check the allowance and submit `client.tokens.approve` separately
+when required. Wait for that approval to execute before depositing. Permit2 data
+must be explicitly prepared and signed by your application.
 
-The [playground](https://github.com/t3tris-finance/playground) includes API calls
-and viem examples for the on-chain surface. Live actions use real funds and gas.
+`decreaseDepositRequest` requires `minAmountOut`. Choose oracle deviation bounds
+for your risk policy: `defaultSafeOracle` has permissive defaults (unbounded up,
+100% down). Batch methods submit one explicitly requested atomic multicall.
 
-The API client supports Bun and Node.js 20+ after transpilation. Live events need
-a global `WebSocket` (Node.js 22+ or Bun). Browser wallet integrations require a
-bundler. ESM only. Import types from `@t3tris/sdk/entities`, optional wallet helpers
-from `@t3tris/sdk/wallet`, and role constants from `@t3tris/sdk/curate`.
-There is no separate `createCurate` or `createEarn` constructor.
+## Errors and cancellation
 
-See [CHANGELOG.md](./CHANGELOG.md) for the 0.2 migration. Report bugs in
-[GitHub issues](https://github.com/t3tris-finance/sdk/issues).
+API requests have a 15-second default timeout. Set `requestOptions.timeoutMs`,
+`signal` or `retries` when constructing an API client. Retries apply only to safe
+GET requests. `ApiError` exposes `status`, `code`, `requestId`, `retryAfterMs` and
+response headers. Respect `retryAfterMs` when handling rate limits.
+
+On-chain methods throw `ChainMismatchError` for a wrong network,
+`ActionCancelledError` for a rejected wallet request, or `PlatformActionError`
+when a contract revert can be decoded. Transactions are never retried automatically.
+
+## Runtime support
+
+Node.js 20+ and Bun, ESM only. Live subscriptions need a global `WebSocket`,
+available in Node.js 22+ and Bun. Browser wallet integrations use a bundler such
+as Next.js or Vite. No wagmi or RainbowKit dependency is required.
+
+[Interactive examples](https://github.com/t3tris-finance/playground) ·
+[Changelog](./CHANGELOG.md) ·
+[Report an issue](https://github.com/t3tris-finance/sdk/issues)
