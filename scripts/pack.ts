@@ -26,11 +26,9 @@ const manifest = JSON.parse(readFileSync(join(pkgDir, "package.json"), "utf8")) 
   description?: string;
   dependencies: Record<string, string>;
 };
-const versionMatch = readFileSync(join(pkgDir, "src/index.ts"), "utf8").match(
-  /SDK_VERSION = "([^"]+)"/,
-);
-if (!versionMatch || versionMatch[1] !== manifest.version) {
-  console.error(`SDK_VERSION (${versionMatch?.[1] ?? "missing"}) != version (${manifest.version})`);
+const { SDK_VERSION } = await import("../dist/index.js");
+if (SDK_VERSION !== manifest.version) {
+  console.error(`SDK_VERSION (${SDK_VERSION}) != version (${manifest.version})`);
   process.exit(1);
 }
 

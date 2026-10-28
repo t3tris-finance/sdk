@@ -5,6 +5,13 @@ SemVer: while it is `0.x`, minor releases may contain breaking changes, each
 listed with migration notes. Deprecations are announced at least one minor
 release before removal.
 
+## 0.2.1
+
+- API clients now connect to `https://api.t3tris.finance` by default, with no URL
+  configuration required. Existing constructor and environment overrides are preserved.
+- Customer examples need only an API key. Packaged-client smoke tests cover API
+  defaults and both wallet initialization forms without API configuration.
+
 ## 0.2.0
 
 Breaking on-chain migration:

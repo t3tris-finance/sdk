@@ -4,7 +4,8 @@
  * Typed entities and request/response types for the T3tris API (`/v1`).
  * Calls are sent to the API; this package does not implement them locally.
  */
-export const SDK_VERSION = "0.2.0";
+import packageJson from "../package.json" with { type: "json" };
+export const SDK_VERSION = packageJson.version;
 export * from "./client/index.js";
 export { FeeClaimType, } from "./curate/vault.js";
 export * from "./entities/index.js";

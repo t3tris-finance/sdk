@@ -69,10 +69,9 @@ const wait = (ms, signal) => new Promise((resolve, reject) => {
     signal?.addEventListener("abort", abort, { once: true });
 });
 export function createApiClient(options = {}) {
-    const base = (options.baseUrl ?? readEnv("T3TRIS_API_URL"))?.replace(/\/$/, "");
-    if (base === undefined) {
-        throw new Error("createT3trisClient: pass baseUrl or set T3TRIS_API_URL");
-    }
+    const base = (options.baseUrl ??
+        readEnv("T3TRIS_API_URL") ??
+        "https://api.t3tris.finance").replace(/\/$/, "");
     const apiKey = options.apiKey ?? readEnv("T3TRIS_API_KEY");
     const doFetch = options.fetch ?? fetch;
     const authHeaders = (session) => ({

@@ -60,6 +60,7 @@ writeFileSync(
 import { VAULT_SETTLE_ROLE } from "@t3tris/sdk/curate";
 import * as entities from "@t3tris/sdk/entities";
 import * as wallet from "@t3tris/sdk/wallet";
+import { createPublicClient, createWalletClient, custom, encodeAbiParameters } from "viem";
 
 const assert = (ok, msg) => {
   if (!ok) {
@@ -74,13 +75,45 @@ assert(wallet.execute === undefined, "no implicit workflow executor");
 assert(VAULT_SETTLE_ROLE !== undefined, "curate role constants export");
 assert(Object.keys(wallet).length > 0, "wallet exports");
 
-const client = createT3trisClient({ baseUrl: "http://127.0.0.1:1", apiKey: "sk_smoke" });
+delete process.env.T3TRIS_API_URL;
+const urls = [];
+const client = createT3trisClient({
+  apiKey: "sk_smoke",
+  fetch: async (url) => {
+    urls.push(String(url));
+    return Response.json({ items: [] });
+  },
+});
+await client.catalog.listChains();
+assert(urls[0] === "https://api.t3tris.finance/v1/chains", "default production origin");
 for (const ns of ["catalog", "billing", "vaults", "accounts", "events", "keys", "auth"]) {
   assert(typeof client[ns] === "object", \`client.\${ns} namespace\`);
 }
 assert(typeof client.billing.getPricing === "function", "client.billing.getPricing");
 assert(typeof client.billing.getUsage === "function", "client.billing.getUsage");
 assert(typeof client.vaults.get === "function", "client.vaults.get");
+const account = "0x1111111111111111111111111111111111111111";
+const asset = "0x2222222222222222222222222222222222222222";
+const methods = [];
+const provider = { request: async ({ method }) => {
+  methods.push(method);
+  if (method === "eth_chainId") return "0xa4b1";
+  if (method === "eth_call") return encodeAbiParameters([{ type: "address" }], [asset]);
+  throw new Error("Unexpected wallet request: " + method);
+} };
+const transport = custom(provider);
+const connected = createT3trisClient({
+  walletClient: createWalletClient({ account, transport }),
+  publicClient: createPublicClient({ transport }),
+});
+const raw = createT3trisClient({ provider, account });
+assert(methods.length === 0, "constructors must not connect or perform IO");
+for (const walletClient of [connected, raw]) {
+  assert(typeof walletClient.vaults.create === "function", "wallet capability selected");
+  assert(!("catalog" in walletClient), "wallet mode is not API mode");
+  const result = await walletClient.vaults.read.asset({ chainId: 42161, vault: account });
+  assert(result.toLowerCase() === asset.toLowerCase(), "packaged wallet read without API URL");
+}
 console.log("node runtime ok");
 `,
 );

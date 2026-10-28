@@ -1,7 +1,7 @@
 /**
  * bun examples/get-vault.ts
  *
- * Env: T3TRIS_API_URL, T3TRIS_API_KEY
+ * Env: T3TRIS_API_KEY
  */
 import { createT3trisClient } from "@t3tris/sdk";
 

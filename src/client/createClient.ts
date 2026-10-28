@@ -68,8 +68,8 @@ export class ApiError extends Error {
 }
 
 export interface T3trisClientOptions {
-  /** API origin, e.g. https://api.t3tris.finance (no trailing slash).
-   * Defaults to `T3TRIS_API_URL`. */
+  /** API origin. Precedence: explicit baseUrl, T3TRIS_API_URL, then
+   * https://api.t3tris.finance. */
   baseUrl?: string;
   /** API key (`sk_…`). Server-side only — never ship it to a browser.
    * Defaults to `T3TRIS_API_KEY`. The key identifies the caller; a session
@@ -133,10 +133,11 @@ const wait = (ms: number, signal?: AbortSignal): Promise<void> =>
   });
 
 export function createApiClient(options: T3trisClientOptions = {}): T3trisClient {
-  const base = (options.baseUrl ?? readEnv("T3TRIS_API_URL"))?.replace(/\/$/, "");
-  if (base === undefined) {
-    throw new Error("createT3trisClient: pass baseUrl or set T3TRIS_API_URL");
-  }
+  const base = (
+    options.baseUrl ??
+    readEnv("T3TRIS_API_URL") ??
+    "https://api.t3tris.finance"
+  ).replace(/\/$/, "");
   const apiKey = options.apiKey ?? readEnv("T3TRIS_API_KEY");
   const doFetch = options.fetch ?? fetch;
   const authHeaders = (session?: string): Record<string, string> => ({

@@ -24,8 +24,8 @@ export declare class ApiError extends Error {
     get headers(): Headers | undefined;
 }
 export interface T3trisClientOptions {
-    /** API origin, e.g. https://api.t3tris.finance (no trailing slash).
-     * Defaults to `T3TRIS_API_URL`. */
+    /** API origin. Precedence: explicit baseUrl, T3TRIS_API_URL, then
+     * https://api.t3tris.finance. */
     baseUrl?: string;
     /** API key (`sk_…`). Server-side only — never ship it to a browser.
      * Defaults to `T3TRIS_API_KEY`. The key identifies the caller; a session

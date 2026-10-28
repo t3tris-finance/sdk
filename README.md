@@ -21,7 +21,6 @@ configure the client on your server:
 import { createT3trisClient } from "@t3tris/sdk";
 
 const client = createT3trisClient({
-  baseUrl: "https://api.t3tris.finance",
   apiKey: process.env.T3TRIS_API_KEY,
 });
 
@@ -29,8 +28,8 @@ const chains = await client.catalog.listChains();
 const vaults = await client.vaults.list({ limit: 20 });
 ```
 
-You can also set `T3TRIS_API_URL` and `T3TRIS_API_KEY` and call `createT3trisClient()`
-without arguments. The base URL is the API origin, without `/v1`.
+The client connects to the T3tris production API by default. If `T3TRIS_API_KEY`
+is set on your server, you can also call `createT3trisClient()` without arguments.
 
 **Keep API keys on your server.** For browser applications, expose a route on your
 own backend. The T3tris API does not allow cross-origin browser requests.

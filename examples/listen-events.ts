@@ -1,7 +1,7 @@
 /**
  * bun examples/listen-events.ts
  *
- * Env: T3TRIS_API_URL, T3TRIS_API_KEY (`sk_…` with `stream`).
+ * Env: T3TRIS_API_KEY (`sk_…` with `stream`).
  * Ctrl+C to stop.
  */
 import { createT3trisClient } from "@t3tris/sdk";

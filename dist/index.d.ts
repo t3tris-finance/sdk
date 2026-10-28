@@ -1,10 +1,4 @@
-/**
- * @t3tris/sdk — public SDK.
- *
- * Typed entities and request/response types for the T3tris API (`/v1`).
- * Calls are sent to the API; this package does not implement them locally.
- */
-export declare const SDK_VERSION = "0.2.0";
+export declare const SDK_VERSION: string;
 export * from "./client/index.js";
 export { FeeClaimType, type QueuedFee, type QueuedManagementFee, type SettleKind, } from "./curate/vault.js";
 export * from "./entities/index.js";
