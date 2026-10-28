@@ -2,15 +2,11 @@ import type { Address, EIP1193Provider } from "viem";
 
 export type { EIP1193Provider };
 
-declare global {
-  interface Window {
-    ethereum?: EIP1193Provider;
-  }
-}
-
 /** Optional discovery helper. Client construction never requests wallet access. */
 export function injectedProvider(): EIP1193Provider | null {
-  return typeof window === "undefined" ? null : (window.ethereum ?? null);
+  return typeof window === "undefined"
+    ? null
+    : ((window as Window & { ethereum?: EIP1193Provider }).ethereum ?? null);
 }
 export interface DiscoveredWallet {
   uuid: string;
