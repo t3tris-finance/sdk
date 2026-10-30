@@ -1,21 +1,22 @@
 /**
  * @t3tris/sdk — public SDK.
  *
- * Typed entities and request/response types for the T3tris API (`/v1`).
- * Calls are sent to the API; this package does not implement them locally.
+ * One constructor for server-side API access and explicit on-chain actions.
+ * Typed entities, transaction results and protocol helpers.
  */
 import packageJson from "../package.json" with { type: "json" };
 
 export const SDK_VERSION = packageJson.version;
 
 export * from "./client";
-export {
-  FeeClaimType,
-  type QueuedFee,
-  type QueuedManagementFee,
-  type SettleKind,
-} from "./curate/vault";
 export * from "./entities";
+export {
+  buildPermitSingleTypedData,
+  encodePermit2Data,
+  PERMIT2_ADDRESS,
+  type PermitSingle,
+  permitDeadlines,
+} from "./onchain/permit2";
 export {
   ActionCancelledError,
   ChainMismatchError,
@@ -23,7 +24,13 @@ export {
   type PublicClientSource,
   type TransactionResult,
   type WalletClientSource,
-} from "./wallet/engine";
+} from "./onchain/transport/engine";
+export {
+  FeeClaimType,
+  type QueuedFee,
+  type QueuedManagementFee,
+  type SettleKind,
+} from "./onchain/vaults/admin";
 export {
   type DeployVaultArgs,
   defaultSafeOracle,
@@ -31,11 +38,4 @@ export {
   type GlobalFeesParams,
   type SafeOracleParams,
   type VaultDeployParams,
-} from "./wallet/factory";
-export {
-  buildPermitSingleTypedData,
-  encodePermit2Data,
-  PERMIT2_ADDRESS,
-  type PermitSingle,
-  permitDeadlines,
-} from "./wallet/permit2";
+} from "./onchain/vaults/deployment";

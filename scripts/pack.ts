@@ -55,8 +55,9 @@ const publishManifest = {
   exports: {
     ".": { types: "./dist/index.d.ts", default: "./dist/index.js" },
     "./entities": { types: "./dist/entities/index.d.ts", default: "./dist/entities/index.js" },
-    "./curate": { types: "./dist/curate/index.d.ts", default: "./dist/curate/index.js" },
-    "./wallet": { types: "./dist/wallet/index.d.ts", default: "./dist/wallet/index.js" },
+    "./onchain": { types: "./dist/onchain/index.d.ts", default: "./dist/onchain/index.js" },
+    "./curate": { types: "./dist/compat/curate.d.ts", default: "./dist/compat/curate.js" },
+    "./wallet": { types: "./dist/compat/wallet.d.ts", default: "./dist/compat/wallet.js" },
     "./package.json": "./package.json",
   },
   files: ["dist", "CHANGELOG.md"],

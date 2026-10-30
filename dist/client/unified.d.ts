@@ -1,6 +1,6 @@
-import { type T3trisClientOptions } from "./createClient.js";
-import { type T3trisWalletClient, type WalletOptions } from "./onchain.js";
-import type { T3trisClient } from "./public.js";
+import { type T3trisClientOptions } from "../api/client.js";
+import type { T3trisClient } from "../api/types.js";
+import { type T3trisWalletClient, type WalletOptions } from "../onchain/client.js";
 export type T3trisApiOptions = T3trisClientOptions & {
     walletClient?: never;
     publicClient?: never;

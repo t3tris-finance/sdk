@@ -1,6 +1,6 @@
 {
   "name": "@t3tris/sdk",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Typed T3tris API and explicit on-chain actions through one client.",
   "type": "module",
   "private": true,
@@ -9,17 +9,21 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./onchain": {
+      "types": "./dist/onchain/index.d.ts",
+      "default": "./dist/onchain/index.js"
+    },
     "./curate": {
-      "types": "./dist/curate/index.d.ts",
-      "default": "./dist/curate/index.js"
+      "types": "./dist/compat/curate.d.ts",
+      "default": "./dist/compat/curate.js"
     },
     "./entities": {
       "types": "./dist/entities/index.d.ts",
       "default": "./dist/entities/index.js"
     },
     "./wallet": {
-      "types": "./dist/wallet/index.d.ts",
-      "default": "./dist/wallet/index.js"
+      "types": "./dist/compat/wallet.d.ts",
+      "default": "./dist/compat/wallet.js"
     }
   },
   "files": [

@@ -1,6 +1,10 @@
-import { createApiClient, type T3trisClientOptions } from "./createClient";
-import { createOnchainClient, type T3trisWalletClient, type WalletOptions } from "./onchain";
-import type { T3trisClient } from "./public";
+import { createApiClient, type T3trisClientOptions } from "../api/client";
+import type { T3trisClient } from "../api/types";
+import {
+  createOnchainClient,
+  type T3trisWalletClient,
+  type WalletOptions,
+} from "../onchain/client";
 
 export type T3trisApiOptions = T3trisClientOptions & {
   walletClient?: never;

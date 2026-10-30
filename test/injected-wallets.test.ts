@@ -4,7 +4,7 @@ import {
   type DiscoveredWallet,
   preferredInjectedWallet,
   watchInjectedWallets,
-} from "../src/wallet/provider";
+} from "../src/onchain/transport/provider";
 
 function provider(): EIP1193Provider {
   return { request: async () => [] } as EIP1193Provider;

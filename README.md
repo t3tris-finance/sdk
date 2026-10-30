@@ -12,6 +12,20 @@ bun add git+https://github.com/t3tris-finance/sdk.git
 The package includes ESM JavaScript and TypeScript declarations. Commit your lockfile
 to keep installations reproducible.
 
+## Client configuration
+
+Use `createT3trisClient` from the package root for both API access and contract
+operations. Configuration selects the capabilities of each instance. Keep API
+clients on your server and wallet clients in the wallet-connected application.
+
+Protocol constants, deployment types, Permit2 helpers and optional provider
+discovery are available from `@t3tris/sdk/onchain`:
+
+```ts
+import { createT3trisClient } from "@t3tris/sdk";
+import { VAULT_SETTLE_ROLE, factoryOracleClone } from "@t3tris/sdk/onchain";
+```
+
 ## Read vault data
 
 Create an API key in [T3tris Curate](https://curate.t3tris.finance/premium), then
@@ -56,8 +70,9 @@ with `client.auth`, then pass `{ session: token }` to the protected method.
 Vault-content writes require an authorised wallet session, not an email session.
 
 Live events use `client.events.subscribe()` and require the `stream` scope.
-Pass an `AbortSignal` to stop a subscription. Persist the `onProgress` cursor and
-supply it as `since` to resume later.
+Pass an `AbortSignal` to stop a subscription. Persist a checkpoint only after
+processing delivered events, then supply it as `since` to resume later.
+`onProgress` also reports server watermarks across filtered rows.
 
 ## Submit an on-chain action
 

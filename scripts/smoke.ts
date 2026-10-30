@@ -57,9 +57,11 @@ const nodeDir = makeFixture("node");
 writeFileSync(
   join(nodeDir, "main.mjs"),
   `import { createT3trisClient, SDK_VERSION } from "@t3tris/sdk";
-import { VAULT_SETTLE_ROLE } from "@t3tris/sdk/curate";
+import { VAULT_SETTLE_ROLE } from "@t3tris/sdk/onchain";
 import * as entities from "@t3tris/sdk/entities";
-import * as wallet from "@t3tris/sdk/wallet";
+import * as wallet from "@t3tris/sdk/onchain";
+import * as compatibleWallet from "@t3tris/sdk/wallet";
+import * as compatibleConstants from "@t3tris/sdk/curate";
 import { createPublicClient, createWalletClient, custom, encodeAbiParameters } from "viem";
 
 const assert = (ok, msg) => {
@@ -72,8 +74,10 @@ const assert = (ok, msg) => {
 assert(typeof createT3trisClient === "function", "createT3trisClient export");
 assert(typeof SDK_VERSION === "string" && SDK_VERSION.length > 0, "SDK_VERSION export");
 assert(wallet.execute === undefined, "no implicit workflow executor");
-assert(VAULT_SETTLE_ROLE !== undefined, "curate role constants export");
-assert(Object.keys(wallet).length > 0, "wallet exports");
+assert(VAULT_SETTLE_ROLE !== undefined, "protocol role constants export");
+assert(Object.keys(wallet).length > 0, "onchain exports");
+assert(compatibleWallet.ChainMismatchError === wallet.ChainMismatchError, "shared wallet error constructor");
+assert(compatibleConstants.VAULT_SETTLE_ROLE === VAULT_SETTLE_ROLE, "shared role constant");
 
 delete process.env.T3TRIS_API_URL;
 const urls = [];
@@ -133,7 +137,7 @@ writeFileSync(
 } from "@t3tris/sdk";
 import type { Address, StreamEvent } from "@t3tris/sdk/entities";
 import type { T3trisWalletClient, T3trisWalletOptions } from "@t3tris/sdk";
-import type * as wallet from "@t3tris/sdk/wallet";
+import type * as wallet from "@t3tris/sdk/onchain";
 
 const client: T3trisClient = createT3trisClient();
 const page: Promise<Page<Vault>> = client.vaults.list();
@@ -173,13 +177,13 @@ for (const resolution of ["NodeNext", "Bundler"]) {
   );
 }
 
-// 3. Browser bundler: all four subpaths bundle for a browser target.
+// 3. Browser bundler: neutral helpers bundle for a browser target.
 const browserDir = makeFixture("browser");
 writeFileSync(
   join(browserDir, "entry.ts"),
   `export { createT3trisClient } from "@t3tris/sdk";
-export { VAULT_SETTLE_ROLE } from "@t3tris/sdk/curate";
-export * as wallet from "@t3tris/sdk/wallet";
+export { VAULT_SETTLE_ROLE } from "@t3tris/sdk/onchain";
+export * as wallet from "@t3tris/sdk/onchain";
 `,
 );
 const bundle = await Bun.build({

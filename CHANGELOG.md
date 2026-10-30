@@ -5,6 +5,16 @@ SemVer: while it is `0.x`, minor releases may contain breaking changes, each
 listed with migration notes. Deprecations are announced at least one minor
 release before removal.
 
+## 0.3.0
+
+- Added `@t3tris/sdk/onchain` for protocol constants, deployment helpers, Permit2
+  utilities and optional wallet-provider discovery. All actions use
+  `createT3trisClient` from the package root.
+- API and on-chain implementations are organized by transport and protocol
+  resource. Client methods, transaction results and calldata are unchanged.
+- The `/curate` and `/wallet` helper imports remain available as compatibility
+  aliases. New integrations should use `/onchain`.
+
 ## 0.2.1
 
 - API clients now connect to `https://api.t3tris.finance` by default, with no URL

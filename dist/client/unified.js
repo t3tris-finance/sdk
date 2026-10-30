@@ -1,5 +1,5 @@
-import { createApiClient } from "./createClient.js";
-import { createOnchainClient } from "./onchain.js";
+import { createApiClient } from "../api/client.js";
+import { createOnchainClient, } from "../onchain/client.js";
 export function createT3trisClient(options = {}) {
     if (("provider" in options && options.provider !== undefined) ||
         ("walletClient" in options && options.walletClient !== undefined)) {

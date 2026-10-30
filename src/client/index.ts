@@ -1,3 +1,4 @@
+export { ApiError, type T3trisClientOptions } from "../api/client";
 export type {
   AccountActivityInput,
   AccountFavoritesInput,
@@ -29,9 +30,8 @@ export type {
   UpdateOrgInput,
   UpdateOrgKeyInput,
   VaultMetadataInput,
-} from "./common";
-export { SESSION_HEADER } from "./common";
-export { ApiError, type T3trisClientOptions } from "./createClient";
-export type { T3trisWalletClient } from "./onchain";
-export type { T3trisClient } from "./public";
+} from "../api/inputs";
+export { SESSION_HEADER } from "../api/inputs";
+export type { T3trisClient } from "../api/types";
+export type { T3trisWalletClient } from "../onchain/client";
 export { createT3trisClient, type T3trisApiOptions, type T3trisWalletOptions } from "./unified";
