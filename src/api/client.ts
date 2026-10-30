@@ -108,7 +108,7 @@ const q = (
 };
 
 const refPath = (prefix: string, ref: VaultRef | AssetRef): string =>
-  `${prefix}/${ref.chainId}/${ref.address}`;
+  `${prefix}/${ref.chainId}/${encodeURIComponent(ref.address)}`;
 
 const retryAfterMs = (headers: Headers): number | undefined => {
   const value = headers.get("retry-after");
@@ -130,6 +130,7 @@ const wait = (ms: number, signal?: AbortSignal): Promise<void> =>
       resolve();
     }, ms);
     signal?.addEventListener("abort", abort, { once: true });
+    if (signal?.aborted) abort();
   });
 
 export function createApiClient(options: T3trisClientOptions = {}): T3trisClient {
@@ -140,6 +141,17 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
   ).replace(/\/$/, "");
   const apiKey = options.apiKey ?? readEnv("T3TRIS_API_KEY");
   const doFetch = options.fetch ?? fetch;
+  const controls = options.requestOptions;
+  if (
+    controls?.retries !== undefined &&
+    (!Number.isSafeInteger(controls.retries) || controls.retries < 0)
+  )
+    throw new RangeError("requestOptions.retries must be a non-negative safe integer.");
+  if (
+    controls?.timeoutMs !== undefined &&
+    (!Number.isFinite(controls.timeoutMs) || controls.timeoutMs <= 0)
+  )
+    throw new RangeError("requestOptions.timeoutMs must be a positive finite number.");
   const authHeaders = (session?: string): Record<string, string> => ({
     ...(apiKey === undefined ? {} : { authorization: `Bearer ${apiKey}` }),
     ...(session === undefined ? {} : { [SESSION_HEADER]: session }),
@@ -172,11 +184,17 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
           ...init,
           cache: "no-store",
           signal: controller.signal,
-          headers: {
-            ...authHeaders(auth?.session),
-            ...options.headers,
-            ...init?.headers,
-          },
+          headers: (() => {
+            const headers = new Headers(options.headers);
+            new Headers(init?.headers).forEach((value, name) => {
+              headers.set(name, value);
+            });
+            headers.delete("authorization");
+            headers.delete(SESSION_HEADER);
+            for (const [name, value] of Object.entries(authHeaders(auth?.session)))
+              headers.set(name, value);
+            return headers;
+          })(),
         });
         const errorOptions = {
           headers: res.headers,
@@ -222,7 +240,11 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
           throw new ApiError(0, "network_error", "API request failed", { cause: error });
         }
         const delay = error instanceof ApiError ? error.retryAfterMs : undefined;
-        await wait(delay ?? Math.min(250 * 2 ** attempt, 2_000), controls?.signal);
+        try {
+          await wait(delay ?? Math.min(250 * 2 ** attempt, 2_000), controls?.signal);
+        } catch (cause) {
+          throw new ApiError(0, "aborted", "API request was aborted", { cause });
+        }
       } finally {
         clearTimeout(timer);
         controls?.signal?.removeEventListener("abort", abortFromControl);
@@ -452,6 +474,9 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
         ),
       get: (ref) => request<Vault>(`/${refPath("v1/vaults", ref)}`),
       getMany: async (refs) => {
+        if (refs.length > 100)
+          throw new RangeError("vaults.getMany accepts at most 100 references.");
+        if (refs.length === 0) return [];
         const page = await request<{ items: Vault[] }>(
           `/v1/vaults/refs${q({ refs: refs.map((r) => `${r.chainId}:${r.address.toLowerCase()}`).join(",") })}`,
         );
@@ -485,13 +510,13 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
         ),
       updateAnnotation: (ref, annotationId, input: AnnotationInput, auth: SessionAuth) =>
         request<VaultAnnotation>(
-          `/${refPath("v1/vaults", ref)}/annotations/${annotationId}`,
+          `/${refPath("v1/vaults", ref)}/annotations/${encodeURIComponent(annotationId)}`,
           jsonInit("PUT", input),
           auth,
         ),
       deleteAnnotation: async (ref, annotationId, auth: SessionAuth) => {
         await request<unknown>(
-          `/${refPath("v1/vaults", ref)}/annotations/${annotationId}`,
+          `/${refPath("v1/vaults", ref)}/annotations/${encodeURIComponent(annotationId)}`,
           { method: "DELETE" },
           auth,
         );
@@ -564,7 +589,10 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
         request<ApiKeyMasked>("/v1/key/vaults", jsonInit("POST", input)),
       detachVault: (input: AttachVaultInput) =>
         request<ApiKeyMasked>("/v1/key/vaults", jsonInit("DELETE", input)),
-      listVaults: () => request<Page<Vault>>("/v1/key/vaults"),
+      listVaults: async () => {
+        const result = await request<{ items: Vault[] }>("/v1/key/vaults");
+        return result.items;
+      },
       lookupVaults: async (input: LookupVaultsInput) => {
         const page = await request<{ items: Vault[] }>(
           `/v1/vaults/lookup${q({ address: input.address, chainId: input.chainId })}`,

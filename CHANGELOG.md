@@ -5,6 +5,29 @@ SemVer: while it is `0.x`, minor releases may contain breaking changes, each
 listed with migration notes. Deprecations are announced at least one minor
 release before removal.
 
+## 0.4.0
+
+### Integration changes
+
+- `keys.listVaults()` returns `Vault[]`, the complete quota-bounded attachment set.
+  Replace `(await client.keys.listVaults()).items` with `await client.keys.listVaults()`.
+  Paginated methods continue to return `Page<T>` and accept `PageInput`.
+- Settlement and lifecycle previews return named models (`SettlePreview`,
+  `SettleDepositsPreview`, `SettleRedemptionsPreview`, `OpenPreview`) instead of
+  positional tuples. Read fields such as `preview.assetsFromCurator` directly.
+- `SettleInput` distinguishes deposit/combined fee-claim options from the
+  redemption-only `fullClaim` option. Pass only the fields for the chosen kind.
+
+### Validation and transport
+
+- Empty `vaults.getMany([])` returns an empty array without a request; inputs over
+  100 references fail before IO. Annotation identifiers are URL-escaped.
+- Transport controls reject invalid retry/deadline values, cancellation during
+  retry backoff consistently throws `ApiError`, and extra headers cannot replace
+  the configured API/session credentials.
+- Regression coverage includes all paginated method families and every named
+  settlement preview layout.
+
 ## 0.3.0
 
 - Added `@t3tris/sdk/onchain` for protocol constants, deployment helpers, Permit2

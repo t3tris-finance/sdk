@@ -143,6 +143,14 @@ const client: T3trisClient = createT3trisClient();
 const page: Promise<Page<Vault>> = client.vaults.list();
 const usage: Promise<UsageSummary> = client.billing.getUsage();
 const pricing: Promise<BillingPricing> = client.billing.getPricing();
+const attached: Promise<Vault[]> = client.keys.listVaults();
+declare const connected: T3trisWalletClient;
+const preview: Promise<import("@t3tris/sdk").SettlePreview> = connected.vaults.read.previewSettleAll({chainId: 42161, vault: "0x0000000000000000000000000000000000000001"});
+// @ts-expect-error fullClaim is exclusive to redemption settlement
+connected.vaults.settle({chainId: 42161, vault: "0x0000000000000000000000000000000000000001", kind: "both", fullClaim: true});
+// @ts-expect-error feeClaimType is not a redemption option
+connected.vaults.settle({chainId: 42161, vault: "0x0000000000000000000000000000000000000001", kind: "redemptions", feeClaimType: 0});
+void [attached, preview];
 const address: Address = "0x0000000000000000000000000000000000000001";
 const event: StreamEvent | null = null;
 const curate: T3trisWalletClient | null = null;

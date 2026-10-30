@@ -76,31 +76,31 @@ export declare function createOnchainClient(options: WalletOptions): {
                 feeClaimType?: import("../index.js").FeeClaimType;
             } & {
                 chainId: number;
-            }) => Promise<readonly unknown[]>;
+            }) => Promise<import("../index.js").SettlePreview>;
             previewSettleDeposits: (input: {
                 vault: Address;
                 feeClaimType?: import("../index.js").FeeClaimType;
             } & {
                 chainId: number;
-            }) => Promise<readonly unknown[]>;
+            }) => Promise<import("../index.js").SettleDepositsPreview>;
             previewSettleRedemptions: (input: {
                 vault: Address;
                 fullClaim?: boolean;
             } & {
                 chainId: number;
-            }) => Promise<readonly unknown[]>;
+            }) => Promise<import("../index.js").SettleRedemptionsPreview>;
             previewOpen: (input: {
                 vault: Address;
                 feeClaimType?: import("../index.js").FeeClaimType;
             } & {
                 chainId: number;
-            }) => Promise<readonly unknown[]>;
+            }) => Promise<import("../index.js").OpenPreview>;
             previewEnableEndOfFund: (input: {
                 vault: Address;
                 feeClaimType?: import("../index.js").FeeClaimType;
             } & {
                 chainId: number;
-            }) => Promise<readonly unknown[]>;
+            }) => Promise<import("../index.js").OpenPreview>;
             previewCloseFund: (input: {
                 vault: Address;
             } & {
@@ -148,7 +148,7 @@ export declare function createOnchainClient(options: WalletOptions): {
         decreaseRedeemRequest: (input: import("./vaults/actions.js").DecreaseRedeemInput) => Promise<import("../index.js").TransactionResult>;
         claimDeposit: (input: import("./vaults/actions.js").ClaimDepositInput) => Promise<import("../index.js").TransactionResult>;
         claimRedeem: (input: import("./vaults/actions.js").ClaimRedeemInput) => Promise<import("../index.js").TransactionResult>;
-        settle: (input: import("./vaults/admin.js").SettleInput) => Promise<import("../index.js").TransactionResult>;
+        settle: (input: import("../index.js").SettleInput) => Promise<import("../index.js").TransactionResult>;
         setNextManagementFee: (input: import("./vaults/admin.js").Target & {
             wad: bigint;
             days: number;

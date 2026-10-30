@@ -34,17 +34,18 @@ export interface Target {
     readonly vault: Address;
     readonly chainId: number;
 }
-export interface SettleInput extends Target {
-    readonly kind: SettleKind;
-    /** `FeeClaimType` for `deposits`/`both` (ignored for `redemptions`). */
-    readonly feeClaimType?: FeeClaimType;
-    /** `fullClaim` bool for `redemptions` (ignored for the enum paths). */
-    readonly fullClaim?: boolean;
-    /** The unsafe-settle escape hatch — defaults to `false`. */
+export type SettleInput = Target & {
     readonly unsafe?: boolean;
-    /** Explicit permit2 payload for callers managing their own funding. */
     readonly permit2Data?: Hex;
-}
+} & ({
+    readonly kind: "both" | "deposits";
+    readonly feeClaimType?: FeeClaimType;
+    readonly fullClaim?: never;
+} | {
+    readonly kind: "redemptions";
+    readonly fullClaim?: boolean;
+    readonly feeClaimType?: never;
+});
 export interface WhitelistBatchInput extends Target {
     /** The addresses to add (`whitelisted: true`) or remove (`false`) in one tx. */
     readonly addresses: readonly Address[];
@@ -59,27 +60,27 @@ export declare function makeVaultActions(clients: OnchainClients): {
         isOpen: (i: {
             vault: Address;
         }) => Promise<boolean>;
-        /** Raw `previewSettleAll` tuple, in positional ABI order. */
+        /** Combined settlement preview with named asset flows and fee breakdown. */
         previewSettleAll: (i: {
             vault: Address;
             feeClaimType?: FeeClaimType;
-        }) => Promise<readonly unknown[]>;
+        }) => Promise<import("./previews.js").SettlePreview>;
         previewSettleDeposits: (i: {
             vault: Address;
             feeClaimType?: FeeClaimType;
-        }) => Promise<readonly unknown[]>;
+        }) => Promise<import("./previews.js").SettleDepositsPreview>;
         previewSettleRedemptions: (i: {
             vault: Address;
             fullClaim?: boolean;
-        }) => Promise<readonly unknown[]>;
+        }) => Promise<import("./previews.js").SettleRedemptionsPreview>;
         previewOpen: (i: {
             vault: Address;
             feeClaimType?: FeeClaimType;
-        }) => Promise<readonly unknown[]>;
+        }) => Promise<import("./previews.js").OpenPreview>;
         previewEnableEndOfFund: (i: {
             vault: Address;
             feeClaimType?: FeeClaimType;
-        }) => Promise<readonly unknown[]>;
+        }) => Promise<import("./previews.js").OpenPreview>;
         previewCloseFund: (i: {
             vault: Address;
         }) => Promise<bigint>;

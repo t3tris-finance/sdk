@@ -7,6 +7,7 @@
 import { curateSilo, curateVault } from "../abi/admin.js";
 import { bindActions, bindReads, encodeMulticall, transaction as txFlow, } from "../transport/bindings.js";
 import { encodeCall, readCall } from "../transport/engine.js";
+import { depositsPreview, openPreview, redemptionsPreview, settlePreview, } from "./previews.js";
 /** `IVaultTypes.FeeClaimType` (uint8): the settle/open/end-of-fund fee
  * behaviour. `None` claims nothing, `Soft` claims shares only, `Full` claims
  * shares + assets. */
@@ -116,15 +117,12 @@ export function makeVaultActions(clients) {
             address: i.vault,
             args: [],
         }))[0],
-        /** Raw `previewSettleAll` tuple, in positional ABI order. */
-        previewSettleAll: async (i) => (await readCall(curateVault.previewSettleAll, clients.publicClient, { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] }))[0],
-        previewSettleDeposits: async (i) => (await readCall(curateVault.previewSettleDeposits, clients.publicClient, { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] }))[0],
-        previewSettleRedemptions: async (i) => (await readCall(curateVault.previewSettleRedemptions, clients.publicClient, { address: i.vault, args: [i.fullClaim ?? false] }))[0],
-        previewOpen: async (i) => (await readCall(curateVault.previewOpenFund, clients.publicClient, {
-            address: i.vault,
-            args: [i.feeClaimType ?? FeeClaimType.None],
-        }))[0],
-        previewEnableEndOfFund: async (i) => (await readCall(curateVault.previewEnableEndOfFund, clients.publicClient, { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] }))[0],
+        /** Combined settlement preview with named asset flows and fee breakdown. */
+        previewSettleAll: async (i) => settlePreview((await readCall(curateVault.previewSettleAll, clients.publicClient, { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] }))[0]),
+        previewSettleDeposits: async (i) => depositsPreview((await readCall(curateVault.previewSettleDeposits, clients.publicClient, { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] }))[0]),
+        previewSettleRedemptions: async (i) => redemptionsPreview((await readCall(curateVault.previewSettleRedemptions, clients.publicClient, { address: i.vault, args: [i.fullClaim ?? false] }))[0]),
+        previewOpen: async (i) => openPreview((await readCall(curateVault.previewOpenFund, clients.publicClient, { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] }))[0]),
+        previewEnableEndOfFund: async (i) => openPreview((await readCall(curateVault.previewEnableEndOfFund, clients.publicClient, { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] }))[0]),
         previewCloseFund: async (i) => (await readCall(curateVault.previewCloseFund, clients.publicClient, {
             address: i.vault,
             args: [],

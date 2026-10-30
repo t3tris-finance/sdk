@@ -18,6 +18,7 @@ export {
   type WalletClientSource,
 } from "./transport/engine";
 export * from "./transport/provider";
+export type { SettleInput } from "./vaults/admin";
 export {
   type DeployVaultArgs,
   defaultSafeOracle,
@@ -26,3 +27,18 @@ export {
   type SafeOracleParams,
   type VaultDeployParams,
 } from "./vaults/deployment";
+export type {
+  EntryFees,
+  ExitFees,
+  GrossTvlData,
+  LastPeriodData,
+  NetDepositFlowData,
+  NetRedeemFlowData,
+  NetTvlData,
+  OpenPreview,
+  SettleDepositsPreview,
+  SettlementPreview,
+  SettlePreview,
+  SettleRedemptionsPreview,
+  UnclaimedFeesData,
+} from "./vaults/previews";

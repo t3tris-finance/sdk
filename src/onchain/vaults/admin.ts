@@ -14,6 +14,14 @@ import {
   transaction as txFlow,
 } from "../transport/bindings";
 import { encodeCall, type OnchainClients, readCall } from "../transport/engine";
+import {
+  type CombinedPreviewTuple,
+  depositsPreview,
+  type FlowPreviewTuple,
+  openPreview,
+  redemptionsPreview,
+  settlePreview,
+} from "./previews";
 
 /** `IVaultTypes.FeeClaimType` (uint8): the settle/open/end-of-fund fee
  * behaviour. `None` claims nothing, `Soft` claims shares only, `Full` claims
@@ -44,17 +52,17 @@ export interface Target {
   readonly chainId: number;
 }
 
-export interface SettleInput extends Target {
-  readonly kind: SettleKind;
-  /** `FeeClaimType` for `deposits`/`both` (ignored for `redemptions`). */
-  readonly feeClaimType?: FeeClaimType;
-  /** `fullClaim` bool for `redemptions` (ignored for the enum paths). */
-  readonly fullClaim?: boolean;
-  /** The unsafe-settle escape hatch — defaults to `false`. */
+export type SettleInput = Target & {
   readonly unsafe?: boolean;
-  /** Explicit permit2 payload for callers managing their own funding. */
   readonly permit2Data?: Hex;
-}
+} & (
+    | {
+        readonly kind: "both" | "deposits";
+        readonly feeClaimType?: FeeClaimType;
+        readonly fullClaim?: never;
+      }
+    | { readonly kind: "redemptions"; readonly fullClaim?: boolean; readonly feeClaimType?: never }
+  );
 
 function settleData(i: SettleInput, permit2Data = i.permit2Data ?? "0x"): Hex {
   const unsafe = i.unsafe ?? false;
@@ -265,50 +273,57 @@ export function makeVaultActions(clients: OnchainClients) {
           args: [],
         })
       )[0],
-    /** Raw `previewSettleAll` tuple, in positional ABI order. */
+    /** Combined settlement preview with named asset flows and fee breakdown. */
     previewSettleAll: async (i: { vault: Address; feeClaimType?: FeeClaimType }) =>
-      (
-        await readCall<readonly [readonly unknown[]]>(
-          curateVault.previewSettleAll,
-          clients.publicClient,
-          { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] },
-        )
-      )[0],
+      settlePreview(
+        (
+          await readCall<readonly [CombinedPreviewTuple]>(
+            curateVault.previewSettleAll,
+            clients.publicClient,
+            { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] },
+          )
+        )[0],
+      ),
     previewSettleDeposits: async (i: { vault: Address; feeClaimType?: FeeClaimType }) =>
-      (
-        await readCall<readonly [readonly unknown[]]>(
-          curateVault.previewSettleDeposits,
-          clients.publicClient,
-          { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] },
-        )
-      )[0],
+      depositsPreview(
+        (
+          await readCall<readonly [FlowPreviewTuple]>(
+            curateVault.previewSettleDeposits,
+            clients.publicClient,
+            { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] },
+          )
+        )[0],
+      ),
     previewSettleRedemptions: async (i: { vault: Address; fullClaim?: boolean }) =>
-      (
-        await readCall<readonly [readonly unknown[]]>(
-          curateVault.previewSettleRedemptions,
-          clients.publicClient,
-          { address: i.vault, args: [i.fullClaim ?? false] },
-        )
-      )[0],
+      redemptionsPreview(
+        (
+          await readCall<readonly [FlowPreviewTuple]>(
+            curateVault.previewSettleRedemptions,
+            clients.publicClient,
+            { address: i.vault, args: [i.fullClaim ?? false] },
+          )
+        )[0],
+      ),
     previewOpen: async (i: { vault: Address; feeClaimType?: FeeClaimType }) =>
-      (
-        await readCall<readonly [readonly unknown[]]>(
-          curateVault.previewOpenFund,
-          clients.publicClient,
-          {
-            address: i.vault,
-            args: [i.feeClaimType ?? FeeClaimType.None],
-          },
-        )
-      )[0],
+      openPreview(
+        (
+          await readCall<readonly [CombinedPreviewTuple]>(
+            curateVault.previewOpenFund,
+            clients.publicClient,
+            { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] },
+          )
+        )[0],
+      ),
     previewEnableEndOfFund: async (i: { vault: Address; feeClaimType?: FeeClaimType }) =>
-      (
-        await readCall<readonly [readonly unknown[]]>(
-          curateVault.previewEnableEndOfFund,
-          clients.publicClient,
-          { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] },
-        )
-      )[0],
+      openPreview(
+        (
+          await readCall<readonly [CombinedPreviewTuple]>(
+            curateVault.previewEnableEndOfFund,
+            clients.publicClient,
+            { address: i.vault, args: [i.feeClaimType ?? FeeClaimType.None] },
+          )
+        )[0],
+      ),
     previewCloseFund: async (i: { vault: Address }) =>
       (
         await readCall<readonly [bigint]>(curateVault.previewCloseFund, clients.publicClient, {

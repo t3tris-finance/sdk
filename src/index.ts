@@ -25,6 +25,7 @@ export {
   type TransactionResult,
   type WalletClientSource,
 } from "./onchain/transport/engine";
+export type { SettleInput } from "./onchain/vaults/admin";
 export {
   FeeClaimType,
   type QueuedFee,
@@ -39,3 +40,18 @@ export {
   type SafeOracleParams,
   type VaultDeployParams,
 } from "./onchain/vaults/deployment";
+export type {
+  EntryFees,
+  ExitFees,
+  GrossTvlData,
+  LastPeriodData,
+  NetDepositFlowData,
+  NetRedeemFlowData,
+  NetTvlData,
+  OpenPreview,
+  SettleDepositsPreview,
+  SettlementPreview,
+  SettlePreview,
+  SettleRedemptionsPreview,
+  UnclaimedFeesData,
+} from "./onchain/vaults/previews";

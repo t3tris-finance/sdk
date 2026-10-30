@@ -74,7 +74,9 @@ export interface T3trisClient {
          * ends on `signal` abort or a clean close, throws ApiError on an auth
          * denial. `onProgress` reports the acknowledged server cursor (it advances
          * across filtered rows) — persist it to resume later subscriptions.
-         * `onReady` fires once the first server replay/watermark is established. */
+         * `onReady` fires once the first server replay/watermark is established.
+         * Progress can precede asynchronous processing: commit a durable checkpoint
+         * only after all preceding delivered events have been applied. */
         subscribe(filter?: EventFilter, options?: {
             signal?: AbortSignal;
             onProgress?: (cursor: number) => void;
@@ -86,8 +88,9 @@ export interface T3trisClient {
         attachVault(input: AttachVaultInput): Promise<ApiKeyMasked>;
         /** This key (`manage` scope): detach a vault from itself. Returns the key. */
         detachVault(input: AttachVaultInput): Promise<ApiKeyMasked>;
-        /** Vaults currently attached to this key (`public` scope). */
-        listVaults(): Promise<Page<Vault>>;
+        /** All vaults attached to this key. Bounded by the organization's vault quota;
+         * returned as a complete array, without pagination. Requires public scope. */
+        listVaults(): Promise<Vault[]>;
         /** Read vaults matching an address (optional chainId). Does not attach or
          * detach. `public` scope. Bounded array — no cursor. */
         lookupVaults(input: LookupVaultsInput): Promise<Vault[]>;

@@ -63,7 +63,9 @@ own backend. The T3tris API does not allow cross-origin browser requests.
 Vault queries return the vaults attached to your key. Attach them in Curate or use
 `client.keys.attachVault({ address, chainId })` with the `manage` scope.
 Paginated methods return `{ items, nextCursor? }`. Pass `nextCursor` as `cursor`
-with the same filters to retrieve the next page.
+with the same filters to retrieve the next page. `keys.listVaults()` returns the
+complete attachment set as `Vault[]`; it does not paginate. `vaults.getMany(refs)`
+and `keys.lookupVaults(input)` also return arrays.
 
 Protected writes require a user session in addition to the API key. Authenticate
 with `client.auth`, then pass `{ session: token }` to the protected method.
@@ -109,6 +111,32 @@ if (result.status === "submitted") {
   if (receipt.status === "reverted") throw new Error("Transaction reverted");
 }
 ```
+
+### Preview settlement
+
+```ts
+const preview = await client.vaults.read.previewSettleAll({ chainId, vault });
+const requiredCuratorAssets = preview.assetsFromCurator;
+const managementFeeAssets = preview.lastPeriodData.managementFeeAssets;
+```
+
+Preview results use named, typed fields. Prepare required funding and obtain user
+confirmation before a separate `vaults.settle` call.
+
+### Request an asynchronous deposit
+
+```ts
+const result = await client.vaults.requestDeposit({
+  chainId,
+  vault,
+  amount: 1_000_000n,
+  controller: account,
+});
+```
+
+Approve funding first, then confirm request execution. Settlement and
+`vaults.claimDeposit({ chainId, vault, receiver: account })` are later, separate
+transactions. Amounts use the underlying token's decimals.
 
 ### Create a vault
 

@@ -3,7 +3,7 @@ import type { ApiScope } from "../entities/auth";
 import type { OrgRole } from "../entities/org";
 import type { Address, VaultRef } from "../entities/primitives";
 
-/** Cursor pagination envelope — every list endpoint answers with this. */
+/** Cursor pagination envelope. Non-paginated collection methods return arrays. */
 export interface Page<T> {
   items: T[];
   nextCursor?: string;
@@ -180,7 +180,7 @@ export interface AnnotationInput {
   body?: string;
   /** Ordered labeled external links (up to 20). Pass [] to clear on edit. */
   links?: { title: string; url: string }[];
-  /** Legacy single-hash input, used only when links is omitted. */
+  /** Transaction link, used only when links is omitted. */
   txHash?: `0x${string}`;
 }
 
