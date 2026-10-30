@@ -143,7 +143,7 @@ const client: T3trisClient = createT3trisClient();
 const page: Promise<Page<Vault>> = client.vaults.list();
 const usage: Promise<UsageSummary> = client.billing.getUsage();
 const pricing: Promise<BillingPricing> = client.billing.getPricing();
-const attached: Promise<Vault[]> = client.keys.listVaults();
+const attached: Promise<Page<Vault>> = client.keys.listVaults({ limit: 100, cursor: "opaque" });
 declare const connected: T3trisWalletClient;
 const preview: Promise<import("@t3tris/sdk").SettlePreview> = connected.vaults.read.previewSettleAll({chainId: 42161, vault: "0x0000000000000000000000000000000000000001"});
 // @ts-expect-error fullClaim is exclusive to redemption settlement

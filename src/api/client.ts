@@ -589,10 +589,8 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
         request<ApiKeyMasked>("/v1/key/vaults", jsonInit("POST", input)),
       detachVault: (input: AttachVaultInput) =>
         request<ApiKeyMasked>("/v1/key/vaults", jsonInit("DELETE", input)),
-      listVaults: async () => {
-        const result = await request<{ items: Vault[] }>("/v1/key/vaults");
-        return result.items;
-      },
+      listVaults: (input) =>
+        request<Page<Vault>>(`/v1/key/vaults${q({ limit: input?.limit, cursor: input?.cursor })}`),
       lookupVaults: async (input: LookupVaultsInput) => {
         const page = await request<{ items: Vault[] }>(
           `/v1/vaults/lookup${q({ address: input.address, chainId: input.chainId })}`,

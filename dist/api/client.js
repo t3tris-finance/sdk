@@ -453,10 +453,7 @@ export function createApiClient(options = {}) {
         keys: {
             attachVault: (input) => request("/v1/key/vaults", jsonInit("POST", input)),
             detachVault: (input) => request("/v1/key/vaults", jsonInit("DELETE", input)),
-            listVaults: async () => {
-                const result = await request("/v1/key/vaults");
-                return result.items;
-            },
+            listVaults: (input) => request(`/v1/key/vaults${q({ limit: input?.limit, cursor: input?.cursor })}`),
             lookupVaults: async (input) => {
                 const page = await request(`/v1/vaults/lookup${q({ address: input.address, chainId: input.chainId })}`);
                 return page.items;

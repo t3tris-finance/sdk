@@ -88,9 +88,9 @@ export interface T3trisClient {
         attachVault(input: AttachVaultInput): Promise<ApiKeyMasked>;
         /** This key (`manage` scope): detach a vault from itself. Returns the key. */
         detachVault(input: AttachVaultInput): Promise<ApiKeyMasked>;
-        /** All vaults attached to this key. Bounded by the organization's vault quota;
-         * returned as a complete array, without pagination. Requires public scope. */
-        listVaults(): Promise<Vault[]>;
+        /** Paginated attached vaults, ordered by chain ID then address. Requires public
+         * scope. Pass nextCursor as cursor to continue. Default 50, maximum 200. */
+        listVaults(input?: PageInput): Promise<Page<Vault>>;
         /** Read vaults matching an address (optional chainId). Does not attach or
          * detach. `public` scope. Bounded array — no cursor. */
         lookupVaults(input: LookupVaultsInput): Promise<Vault[]>;

@@ -4,15 +4,15 @@ import { ApiError, createT3trisClient } from "../../src";
 const ref = { chainId: 42161, address: "0x1111111111111111111111111111111111111111" as const };
 
 describe("API collection contracts", () => {
-  test("key attachments are a complete array rather than a page", async () => {
+  test("key attachments retain the page envelope and continuation cursor", async () => {
     const urls: string[] = [];
     const client = createT3trisClient({
       fetch: async (url) => {
         urls.push(String(url));
-        return Response.json({ items: [ref] });
+        return Response.json({ items: [ref], nextCursor: "opaque_next" });
       },
     });
-    expect(await client.keys.listVaults()).toEqual([ref]);
+    expect(await client.keys.listVaults()).toEqual({ items: [ref], nextCursor: "opaque_next" });
     expect(new URL(urls[0] ?? "").pathname).toBe("/v1/key/vaults");
     expect(new URL(urls[0] ?? "").search).toBe("");
   });
@@ -50,6 +50,7 @@ describe("API collection contracts", () => {
       () => client.accounts.listPositions({ ...page, address: ref.address }),
       () => client.accounts.listActivity({ ...page, address: ref.address }),
       () => client.events.list(page),
+      () => client.keys.listVaults(page),
     ];
     for (const call of calls) expect((await call()).nextCursor).toBe("next");
     for (const url of urls) {

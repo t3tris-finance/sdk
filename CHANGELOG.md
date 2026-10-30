@@ -5,6 +5,14 @@ SemVer: while it is `0.x`, minor releases may contain breaking changes, each
 listed with migration notes. Deprecations are announced at least one minor
 release before removal.
 
+## 0.5.0
+
+- `keys.listVaults(input?: PageInput)` returns `Page<Vault>` with real server-side
+  keyset pagination. Default page size is 50, maximum 200; order is chain ID then
+  address. Continue with `nextCursor` without loading the full attachment set.
+- From 0.4: read `page.items` instead of an array and follow `page.nextCursor`.
+  The paginated `/v1/key/vaults` API must be deployed alongside this SDK version.
+
 ## 0.4.0
 
 ### Integration changes

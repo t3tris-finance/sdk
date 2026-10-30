@@ -63,9 +63,9 @@ own backend. The T3tris API does not allow cross-origin browser requests.
 Vault queries return the vaults attached to your key. Attach them in Curate or use
 `client.keys.attachVault({ address, chainId })` with the `manage` scope.
 Paginated methods return `{ items, nextCursor? }`. Pass `nextCursor` as `cursor`
-with the same filters to retrieve the next page. `keys.listVaults()` returns the
-complete attachment set as `Vault[]`; it does not paginate. `vaults.getMany(refs)`
-and `keys.lookupVaults(input)` also return arrays.
+with the same filters to retrieve the next page. `keys.listVaults({ limit, cursor })`
+is paginated too (default 50, maximum 200), ordered by chain ID then address.
+`vaults.getMany(refs)` and `keys.lookupVaults(input)` return bounded arrays.
 
 Protected writes require a user session in addition to the API key. Authenticate
 with `client.auth`, then pass `{ session: token }` to the protected method.
