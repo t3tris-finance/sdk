@@ -7,6 +7,9 @@ release before removal.
 
 ## 0.6.0
 
+- Remove email registration/login and `EmailRegisterInput` from the public SDK.
+  Public authentication uses SIWE; wallet sessions and logout methods remain.
+
 - Vault contract targets now use `{ chainId, address }`, matching API `VaultRef`.
   Rename the `vault` input field to `address` in `vaults` actions/reads and vault
   `roles` methods. Other inputs (`receiver`, `owner`, `token`, `oracle`, `factory`)

@@ -60,7 +60,7 @@ own backend. The T3tris API does not allow cross-origin browser requests.
 | `events` | Event history and live subscriptions |
 | `keys` | Vault lookup and key attachments |
 | `billing` | Pricing and usage |
-| `auth` | SIWE and email authentication, sessions and logout |
+| `auth` | Wallet authentication with SIWE, sessions and logout |
 
 Vault queries return the vaults attached to your key. Attach them in Curate or use
 `client.keys.attachVault({ vaults: [{ address, chainId }] })` with the `manage` scope.
@@ -72,7 +72,7 @@ one availability boolean per reference, preserving input order and duplicates.
 
 Protected writes require a user session in addition to the API key. Authenticate
 with `client.auth`, then pass `{ session: token }` to the protected method.
-Vault-content writes require an authorised wallet session, not an email session.
+Vault-content writes require an authorised wallet session.
 
 Live events use `client.events.subscribe()` and require the `stream` scope.
 Pass an `AbortSignal` to stop a subscription. Persist a checkpoint only after

@@ -143,6 +143,13 @@ const client: T3trisClient = createT3trisClient();
 const page: Promise<Page<Vault>> = client.vaults.list();
 const usage: Promise<UsageSummary> = client.billing.getUsage();
 const pricing: Promise<BillingPricing> = client.billing.getPricing();
+// @ts-expect-error Email credentials are not part of the public SDK
+const credentials: import("@t3tris/sdk").EmailRegisterInput = {};
+// @ts-expect-error Email login is not a public SDK capability
+client.auth.loginEmail({ email: "test@example.com", password: "example" });
+// @ts-expect-error Email registration is not a public SDK capability
+client.auth.registerEmail({ email: "test@example.com", password: "example" });
+void credentials;
 const attached: Promise<Page<Vault>> = client.keys.listVaults({ limit: 100, cursor: "opaque" });
 declare const connected: T3trisWalletClient;
 const preview: Promise<import("@t3tris/sdk").SettlePreview> = connected.vaults.read.previewSettleAll({chainId: 42161, address: "0x0000000000000000000000000000000000000001"});
