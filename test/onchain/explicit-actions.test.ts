@@ -11,7 +11,6 @@ import {
   ChainMismatchError,
   createT3trisClient,
   defaultSafeOracle,
-  factoryOracleClone,
   T3TRIS_FACTORY_ADDRESS,
 } from "../../src";
 import type { OnchainClients } from "../../src/onchain/transport/engine";
@@ -92,30 +91,22 @@ describe("explicit wallet actions", () => {
     };
     const result = await f.client.vaults.create({
       chainId: 42161,
-      salt: hash,
-      oracle: factoryOracleClone,
-      safeOracle: defaultSafeOracle(account),
-      params: {
-        shareName: "Test",
-        shareSymbol: "TST",
+      name: "Test",
+      symbol: "TST",
+      asset: vault,
+      owner: account,
+      curator: account,
+      feeRecipient: account,
+      config: {
         ipfsHash: "",
-        underlyingAsset: vault,
-        oracle: factoryOracleClone,
-        vaultOwner: account,
-        curator: account,
-        feeRecipient: account,
         transferEnabled: false,
         depositEnabled: false,
         depositWhitelistEnabled: false,
         withdrawWhitelistEnabled: false,
-        globalFees: {
-          entryFeeWad: 0n,
-          exitFeeWad: 0n,
-          managementFeeWad: 0n,
-          performanceFeeWad: 0n,
-          managementFeeDays: 365,
-        },
       },
+      fees: { entry: 0n, exit: 0n, management: 0n, performance: 0n, managementDays: 365 },
+      oracle: defaultSafeOracle(account),
+      deployment: { salt: hash },
     });
     expect(result).toEqual({ status: "submitted", hash });
     expect(destination).toBe(T3TRIS_FACTORY_ADDRESS);

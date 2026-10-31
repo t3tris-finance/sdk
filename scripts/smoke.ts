@@ -170,11 +170,21 @@ connected.vaults.open(sharedRef);
 // @ts-expect-error synchronous quotes are not exposed
 connected.vaults.read.previewDeposit({ ...sharedRef, amount: rawAmount });
 // @ts-expect-error deployments do not accept a vaultOpened flag
-const deployment: Pick<import("@t3tris/sdk").VaultDeployParams, "vaultOpened"> = {};
+const deployment: Pick<import("@t3tris/sdk").VaultConfig, "vaultOpened"> = {};
 void deployment;
 // @ts-expect-error the SDK selects the canonical deployment factory
 const factoryInput: Pick<import("@t3tris/sdk").DeployVaultArgs, "factory"> = {};
 void factoryInput;
+declare const creation: import("@t3tris/sdk").DeployVaultArgs;
+connected.vaults.create(creation);
+const safeOracle: import("@t3tris/sdk").VaultOracleConfig = {safe:true,owner:sharedRef.address,maxDeviationUp:rawAmount,maxDeviationDown:rawAmount};
+const existingOracle: import("@t3tris/sdk").VaultOracleConfig = {address:sharedRef.address};
+// @ts-expect-error oracle variants cannot be combined
+const mixedOracle: import("@t3tris/sdk").VaultOracleConfig = {...safeOracle,address:sharedRef.address};
+// @ts-expect-error existing oracles do not take SafeOracle parameters
+const wrongExisting: import("@t3tris/sdk").VaultOracleConfig = {address:sharedRef.address,maxDeviationUp:rawAmount};
+void [existingOracle,mixedOracle,wrongExisting];
+
 connected.vaults.read.previewAddress({chainId:42161,deployer:sharedRef.address,salt:"0x00"});
 connected.roles.read.defaultAdminRole(sharedRef);
 // @ts-expect-error vault targets use address, not vault

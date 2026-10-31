@@ -22,11 +22,12 @@ export type { SettleInput } from "./vaults/admin";
 export {
   type DeployVaultArgs,
   defaultSafeOracle,
-  factoryOracleClone,
-  type GlobalFeesParams,
-  type SafeOracleParams,
+  type ExistingOracleConfig,
+  type SafeOracleConfig,
   T3TRIS_FACTORY_ADDRESS,
-  type VaultDeployParams,
+  type VaultConfig,
+  type VaultFees,
+  type VaultOracleConfig,
 } from "./vaults/deployment";
 export type {
   EntryFees,

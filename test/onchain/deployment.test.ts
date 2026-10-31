@@ -7,134 +7,130 @@ import {
   zeroAddress,
 } from "viem";
 import {
+  type DeployVaultArgs,
   defaultSafeOracle,
   encodeDeployVault,
   factory,
-  factoryOracleClone,
   SAFE_ORACLE_DEVIATION_DOWN,
   SAFE_ORACLE_DEVIATION_UP,
 } from "../../src/onchain/vaults/deployment";
 
 const OWNER = "0x1111111111111111111111111111111111111111" as const;
 const ASSET = "0x2222222222222222222222222222222222222222" as const;
-const SALT = "0x3333333333333333333333333333333333333333333333333333333333333333" as const;
+const ORACLE = "0x4444444444444444444444444444444444444444" as const;
+const SALT = `0x${"33".repeat(32)}` as const;
+const REFERRAL = `0x${"55".repeat(32)}` as const;
+const args: DeployVaultArgs = {
+  chainId: 42161,
+  name: "Flagship",
+  symbol: "FLG",
+  asset: ASSET,
+  owner: OWNER,
+  curator: OWNER,
+  feeRecipient: OWNER,
+  config: {
+    ipfsHash: "ipfs://test",
+    transferEnabled: true,
+    depositEnabled: false,
+    depositWhitelistEnabled: true,
+    withdrawWhitelistEnabled: false,
+  },
+  fees: { entry: 1n, exit: 2n, performance: 3n, management: 4n, managementDays: 365 },
+  oracle: { safe: true, owner: OWNER, maxDeviationUp: 5n, maxDeviationDown: 6n },
+  deployment: { salt: SALT, referralCode: REFERRAL },
+};
+const abi = parseAbiParameters(
+  "(string,string,string,(uint64,uint64,uint64,uint64,uint32),address,address,address,address,address,bool,bool,bool,bool,bool), (address,uint128,uint64), address, bytes32, bytes32",
+);
+const decode = (input: DeployVaultArgs) =>
+  decodeAbiParameters(abi, `0x${encodeDeployVault(input).slice(10)}`);
 
-describe("factory selectors", () => {
-  test("deployVault matches the T3tris ABI signature", () => {
-    const sig =
-      "deployVault((string,string,string,(uint64,uint64,uint64,uint64,uint32),address,address,address,address,address,bool,bool,bool,bool,bool),(address,uint128,uint64),address,bytes32,bytes32)";
-    expect(keccak256(stringToBytes(sig)).slice(0, 10)).toBe(factory.deployVault.sel);
-  });
-
-  test("previewVaultAddress matches the T3tris ABI signature", () => {
+describe("deployment payload", () => {
+  test("selectors remain the canonical contract ABI", () => {
+    expect(
+      keccak256(
+        stringToBytes(
+          "deployVault((string,string,string,(uint64,uint64,uint64,uint64,uint32),address,address,address,address,address,bool,bool,bool,bool,bool),(address,uint128,uint64),address,bytes32,bytes32)",
+        ),
+      ).slice(0, 10),
+    ).toBe(factory.deployVault.sel);
     expect(keccak256(stringToBytes("previewVaultAddress(address,bytes32)")).slice(0, 10)).toBe(
       factory.previewVaultAddress.sel,
     );
   });
-});
-
-describe("encodeDeployVault", () => {
-  test("prefixes the deployVault selector and encodes a full params tuple", () => {
-    const data = encodeDeployVault({
-      params: {
-        shareName: "Flagship",
-        shareSymbol: "FLG",
-        ipfsHash: "",
-        globalFees: {
-          entryFeeWad: 0n,
-          exitFeeWad: 0n,
-          managementFeeWad: 0n,
-          performanceFeeWad: 0n,
-          managementFeeDays: 365,
-        },
-        underlyingAsset: ASSET,
-        oracle: zeroAddress,
-        vaultOwner: OWNER,
-        curator: OWNER,
-        feeRecipient: OWNER,
-        transferEnabled: true,
-        depositEnabled: true,
-        depositWhitelistEnabled: false,
-        withdrawWhitelistEnabled: false,
-      },
-      safeOracle: defaultSafeOracle(OWNER),
-      oracle: zeroAddress,
-      salt: SALT,
-    });
-    expect(data.startsWith(factory.deployVault.sel)).toBe(true);
-    expect(data.length).toBeGreaterThan(10);
+  test("maps friendly fields to exact ABI order and a fresh SafeOracle", () => {
+    const [params, safe, oracle, salt, referral] = decode(args);
+    expect(params).toEqual([
+      "Flagship",
+      "FLG",
+      "ipfs://test",
+      [1n, 2n, 4n, 3n, 365],
+      ASSET,
+      zeroAddress,
+      OWNER,
+      OWNER,
+      OWNER,
+      true,
+      false,
+      true,
+      false,
+      false,
+    ]);
+    expect(safe).toEqual([OWNER, 5n, 6n]);
+    expect(oracle).toBe(zeroAddress);
+    expect(salt).toBe(SALT);
+    expect(referral).toBe(REFERRAL);
   });
-
-  test("default SafeOracle uses unbounded up / 100 % down", () => {
-    const oracle = defaultSafeOracle(OWNER);
-    expect(oracle.owner).toBe(OWNER);
-    expect(oracle.maxDeviationUpWad).toBe(SAFE_ORACLE_DEVIATION_UP);
-    expect(oracle.maxDeviationDownWad).toBe(SAFE_ORACLE_DEVIATION_DOWN);
-    expect(SAFE_ORACLE_DEVIATION_DOWN).toBe(10n ** 18n);
-  });
-
-  test("bounds override either deviation and leave the other default", () => {
-    const partial = defaultSafeOracle(OWNER, { maxDeviationDownWad: 3n });
-    expect(partial).toEqual({
-      owner: OWNER,
-      maxDeviationUpWad: SAFE_ORACLE_DEVIATION_UP,
-      maxDeviationDownWad: 3n,
+  test("existing oracle needs no SafeOracle fields and is consistent in both ABI slots", () => {
+    const [params, safe, oracle, , referral] = decode({
+      ...args,
+      oracle: { address: ORACLE },
+      deployment: { salt: SALT },
     });
-
-    const params = {
-      shareName: "Flagship",
-      shareSymbol: "FLG",
-      ipfsHash: "",
-      globalFees: {
-        entryFeeWad: 0n,
-        exitFeeWad: 0n,
-        managementFeeWad: 0n,
-        performanceFeeWad: 0n,
-        managementFeeDays: 365,
-      },
-      underlyingAsset: ASSET,
-      oracle: zeroAddress,
-      vaultOwner: OWNER,
-      curator: OWNER,
-      feeRecipient: OWNER,
-      transferEnabled: true,
-      depositEnabled: true,
-      depositWhitelistEnabled: false,
-      withdrawWhitelistEnabled: false,
+    expect(params[5]).toBe(ORACLE);
+    expect(oracle).toBe(ORACLE);
+    expect(safe).toEqual([zeroAddress, 0n, 0n]);
+    expect(referral).toBe(`0x${"00".repeat(32)}`);
+  });
+  test("extra JS fields cannot open a vault or override ABI oracle selection", () => {
+    const injected = {
+      ...args,
+      vaultOpened: true,
+      params: { vaultOpened: true, oracle: ORACLE },
+      safeOracle: { owner: ORACLE },
+      config: { ...args.config, vaultOpened: true },
     };
-    const base = encodeDeployVault({
-      params,
-      safeOracle: defaultSafeOracle(OWNER),
-      oracle: factoryOracleClone,
-      salt: SALT,
-    });
-    // JavaScript callers can send extra properties; they must never change calldata.
-    const attemptedSync = encodeDeployVault({
-      params: { ...params, ...{ vaultOpened: true } },
-      safeOracle: defaultSafeOracle(OWNER),
-      oracle: factoryOracleClone,
-      salt: SALT,
-    });
-    expect(attemptedSync).toBe(base);
-    const [decoded] = decodeAbiParameters(
-      parseAbiParameters(
-        "(string,string,string,(uint64,uint64,uint64,uint64,uint32),address,address,address,address,address,bool,bool,bool,bool,bool), (address,uint128,uint64), address, bytes32, bytes32",
-      ),
-      `0x${attemptedSync.slice(10)}`,
-    );
-    expect(decoded[13]).toBe(false);
-    const tightened = encodeDeployVault({
-      params,
-      safeOracle: defaultSafeOracle(OWNER, { maxDeviationUpWad: 5n, maxDeviationDownWad: 6n }),
-      oracle: factoryOracleClone,
-      salt: SALT,
-    });
-    expect(tightened).not.toBe(base);
-    expect(base.startsWith(factory.deployVault.sel)).toBe(true);
-    expect(tightened.startsWith(factory.deployVault.sel)).toBe(true);
+    expect(encodeDeployVault(injected)).toBe(encodeDeployVault(args));
+    expect(decode(injected)[0][13]).toBe(false);
   });
-
-  test("factoryOracleClone is the zero-address clone sentinel", () => {
-    expect(factoryOracleClone).toBe(zeroAddress);
+  test("rejects ambiguous, missing and invalid oracle configurations", () => {
+    for (const oracle of [
+      { safe: true, address: ORACLE, owner: OWNER, maxDeviationUp: 1n, maxDeviationDown: 1n },
+      { safe: false, address: ORACLE },
+      { address: zeroAddress },
+      {},
+      { safe: true, owner: zeroAddress, maxDeviationUp: 1n, maxDeviationDown: 1n },
+      { address: ORACLE, owner: OWNER },
+      { safe: true, owner: OWNER, maxDeviationUp: -1n, maxDeviationDown: 1n },
+      { safe: true, owner: OWNER, maxDeviationUp: 1n, maxDeviationDown: 1n << 64n },
+    ]) {
+      expect(() =>
+        encodeDeployVault({ ...args, oracle: oracle as DeployVaultArgs["oracle"] }),
+      ).toThrow();
+    }
+  });
+  test("SafeOracle helper preserves current defaults with the new shape", () => {
+    expect(defaultSafeOracle(OWNER)).toEqual({
+      safe: true,
+      owner: OWNER,
+      maxDeviationUp: SAFE_ORACLE_DEVIATION_UP,
+      maxDeviationDown: SAFE_ORACLE_DEVIATION_DOWN,
+    });
+    expect(defaultSafeOracle(OWNER, { maxDeviationDown: 3n })).toEqual({
+      safe: true,
+      owner: OWNER,
+      maxDeviationUp: SAFE_ORACLE_DEVIATION_UP,
+      maxDeviationDown: 3n,
+    });
   });
 });

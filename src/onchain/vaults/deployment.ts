@@ -8,6 +8,7 @@ import {
   concatHex,
   encodeAbiParameters,
   type Hex,
+  isAddress,
   maxUint128,
   zeroAddress,
 } from "viem";
@@ -70,86 +71,114 @@ const SAFE_ORACLE: AbiParameter = {
   components: [{ type: "address" }, { type: "uint128" }, { type: "uint64" }],
 };
 
-export interface GlobalFeesParams {
-  entryFeeWad: bigint;
-  exitFeeWad: bigint;
-  managementFeeWad: bigint;
-  performanceFeeWad: bigint;
-  managementFeeDays: number;
+export interface VaultFees {
+  /** Fee rates are bigint WAD: 10^16 = 1%. */
+  entry: bigint;
+  exit: bigint;
+  performance: bigint;
+  management: bigint;
+  managementDays: number;
 }
 
-export interface VaultDeployParams {
-  shareName: string;
-  shareSymbol: string;
+export interface VaultConfig {
   ipfsHash: string;
-  globalFees: GlobalFeesParams;
-  underlyingAsset: Address;
-  oracle: Address;
-  vaultOwner: Address;
-  curator: Address;
-  feeRecipient: Address;
   transferEnabled: boolean;
   depositEnabled: boolean;
   depositWhitelistEnabled: boolean;
   withdrawWhitelistEnabled: boolean;
 }
 
-export interface SafeOracleParams {
+export interface SafeOracleConfig {
+  safe: true;
   owner: Address;
-  maxDeviationUpWad: bigint;
-  maxDeviationDownWad: bigint;
+  /** Deviation bounds are bigint WAD: 10^16 = 1%. */
+  maxDeviationUp: bigint;
+  maxDeviationDown: bigint;
+  address?: never;
 }
+
+export interface ExistingOracleConfig {
+  address: Address;
+  safe?: never;
+  owner?: never;
+  maxDeviationUp?: never;
+  maxDeviationDown?: never;
+}
+
+export type VaultOracleConfig = SafeOracleConfig | ExistingOracleConfig;
 
 export interface DeployVaultArgs {
   chainId: number;
-  params: VaultDeployParams;
-  safeOracle: SafeOracleParams;
-  oracle: Address;
-  salt: Hex;
-  referralCode?: Hex;
+  name: string;
+  symbol: string;
+  asset: Address;
+  owner: Address;
+  curator: Address;
+  feeRecipient: Address;
+  config: VaultConfig;
+  oracle: VaultOracleConfig;
+  deployment: { salt: Hex; referralCode?: Hex };
+  fees: VaultFees;
 }
 
-function paramsTuple(p: VaultDeployParams): readonly unknown[] {
+function paramsTuple(p: Omit<DeployVaultArgs, "chainId">, oracle: Address): readonly unknown[] {
   return [
-    p.shareName,
-    p.shareSymbol,
-    p.ipfsHash,
-    [
-      p.globalFees.entryFeeWad,
-      p.globalFees.exitFeeWad,
-      p.globalFees.managementFeeWad,
-      p.globalFees.performanceFeeWad,
-      p.globalFees.managementFeeDays,
-    ],
-    p.underlyingAsset,
-    p.oracle,
-    p.vaultOwner,
+    p.name,
+    p.symbol,
+    p.config.ipfsHash,
+    [p.fees.entry, p.fees.exit, p.fees.management, p.fees.performance, p.fees.managementDays],
+    p.asset,
+    oracle,
+    p.owner,
     p.curator,
     p.feeRecipient,
-    p.transferEnabled,
-    p.depositEnabled,
-    p.depositWhitelistEnabled,
-    p.withdrawWhitelistEnabled,
+    p.config.transferEnabled,
+    p.config.depositEnabled,
+    p.config.depositWhitelistEnabled,
+    p.config.withdrawWhitelistEnabled,
     false, // SDK 0.6 creates asynchronous vaults regardless of extra runtime fields.
   ];
 }
 
 /** `deployVault(params, safeOracle, oracle, salt, referralCode)` calldata. */
 export function encodeDeployVault(args: Omit<DeployVaultArgs, "chainId">): Hex {
+  const oracle = args.oracle;
+  if (!oracle || typeof oracle !== "object")
+    throw new TypeError("oracle must select a SafeOracle or an existing address");
+  const isSafe = "safe" in oracle;
+  if (isSafe) {
+    if (oracle.safe !== true || "address" in oracle)
+      throw new TypeError("oracle variants are mutually exclusive");
+    if (!isAddress(oracle.owner) || oracle.owner.toLowerCase() === zeroAddress)
+      throw new TypeError("SafeOracle owner must be a nonzero address");
+    for (const [name, value, maximum] of [
+      ["maxDeviationUp", oracle.maxDeviationUp, maxUint128],
+      ["maxDeviationDown", oracle.maxDeviationDown, (1n << 64n) - 1n],
+    ] as const) {
+      if (typeof value !== "bigint" || value < 0n || value > maximum)
+        throw new RangeError(`oracle.${name} is outside the contract range`);
+    }
+  } else if (
+    !isAddress(oracle.address) ||
+    oracle.address.toLowerCase() === zeroAddress ||
+    ["owner", "maxDeviationUp", "maxDeviationDown"].some((key) => key in oracle)
+  ) {
+    throw new TypeError("existing oracle requires only a nonzero address");
+  }
+  const oracleAddress = isSafe ? zeroAddress : oracle.address;
+  const safeTuple = isSafe
+    ? [oracle.owner, oracle.maxDeviationUp, oracle.maxDeviationDown]
+    : [zeroAddress, 0n, 0n];
   return concatHex([
     factory.deployVault.sel,
     encodeAbiParameters(
       [VAULT_PARAMS, SAFE_ORACLE, { type: "address" }, { type: "bytes32" }, { type: "bytes32" }],
       [
-        paramsTuple(args.params),
-        [
-          args.safeOracle.owner,
-          args.safeOracle.maxDeviationUpWad,
-          args.safeOracle.maxDeviationDownWad,
-        ],
-        args.oracle,
-        args.salt,
-        args.referralCode ?? ZERO_BYTES32,
+        paramsTuple(args, oracleAddress),
+        safeTuple,
+        oracleAddress,
+        args.deployment.salt,
+        args.deployment.referralCode ?? ZERO_BYTES32,
       ],
     ),
   ]);
@@ -175,20 +204,14 @@ export async function previewVaultAddress(
 export function defaultSafeOracle(
   owner: Address,
   bounds?: {
-    maxDeviationUpWad?: bigint;
-    maxDeviationDownWad?: bigint;
+    maxDeviationUp?: bigint;
+    maxDeviationDown?: bigint;
   },
-): SafeOracleParams {
+): SafeOracleConfig {
   return {
+    safe: true,
     owner,
-    maxDeviationUpWad: bounds?.maxDeviationUpWad ?? SAFE_ORACLE_DEVIATION_UP,
-    maxDeviationDownWad: bounds?.maxDeviationDownWad ?? SAFE_ORACLE_DEVIATION_DOWN,
+    maxDeviationUp: bounds?.maxDeviationUp ?? SAFE_ORACLE_DEVIATION_UP,
+    maxDeviationDown: bounds?.maxDeviationDown ?? SAFE_ORACLE_DEVIATION_DOWN,
   };
 }
-
-/**
- * The clone sentinel is the zero address (`address(0)`), not a deployed clone
- * address. Passing it as the factory `oracle` argument tells the factory to
- * clone a fresh SafeOracle.
- */
-export const factoryOracleClone = zeroAddress;

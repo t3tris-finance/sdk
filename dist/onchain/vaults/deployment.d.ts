@@ -25,40 +25,52 @@ export declare const factory: {
         }];
     };
 };
-export interface GlobalFeesParams {
-    entryFeeWad: bigint;
-    exitFeeWad: bigint;
-    managementFeeWad: bigint;
-    performanceFeeWad: bigint;
-    managementFeeDays: number;
+export interface VaultFees {
+    /** Fee rates are bigint WAD: 10^16 = 1%. */
+    entry: bigint;
+    exit: bigint;
+    performance: bigint;
+    management: bigint;
+    managementDays: number;
 }
-export interface VaultDeployParams {
-    shareName: string;
-    shareSymbol: string;
+export interface VaultConfig {
     ipfsHash: string;
-    globalFees: GlobalFeesParams;
-    underlyingAsset: Address;
-    oracle: Address;
-    vaultOwner: Address;
-    curator: Address;
-    feeRecipient: Address;
     transferEnabled: boolean;
     depositEnabled: boolean;
     depositWhitelistEnabled: boolean;
     withdrawWhitelistEnabled: boolean;
 }
-export interface SafeOracleParams {
+export interface SafeOracleConfig {
+    safe: true;
     owner: Address;
-    maxDeviationUpWad: bigint;
-    maxDeviationDownWad: bigint;
+    /** Deviation bounds are bigint WAD: 10^16 = 1%. */
+    maxDeviationUp: bigint;
+    maxDeviationDown: bigint;
+    address?: never;
 }
+export interface ExistingOracleConfig {
+    address: Address;
+    safe?: never;
+    owner?: never;
+    maxDeviationUp?: never;
+    maxDeviationDown?: never;
+}
+export type VaultOracleConfig = SafeOracleConfig | ExistingOracleConfig;
 export interface DeployVaultArgs {
     chainId: number;
-    params: VaultDeployParams;
-    safeOracle: SafeOracleParams;
-    oracle: Address;
-    salt: Hex;
-    referralCode?: Hex;
+    name: string;
+    symbol: string;
+    asset: Address;
+    owner: Address;
+    curator: Address;
+    feeRecipient: Address;
+    config: VaultConfig;
+    oracle: VaultOracleConfig;
+    deployment: {
+        salt: Hex;
+        referralCode?: Hex;
+    };
+    fees: VaultFees;
 }
 /** `deployVault(params, safeOracle, oracle, salt, referralCode)` calldata. */
 export declare function encodeDeployVault(args: Omit<DeployVaultArgs, "chainId">): Hex;
@@ -73,12 +85,6 @@ export declare function previewVaultAddress(publicClient: PublicClientSource, ar
  * these defaults, so existing deploy transactions do not change.
  */
 export declare function defaultSafeOracle(owner: Address, bounds?: {
-    maxDeviationUpWad?: bigint;
-    maxDeviationDownWad?: bigint;
-}): SafeOracleParams;
-/**
- * The clone sentinel is the zero address (`address(0)`), not a deployed clone
- * address. Passing it as the factory `oracle` argument tells the factory to
- * clone a fresh SafeOracle.
- */
-export declare const factoryOracleClone: "0x0000000000000000000000000000000000000000";
+    maxDeviationUp?: bigint;
+    maxDeviationDown?: bigint;
+}): SafeOracleConfig;
