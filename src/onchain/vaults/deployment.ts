@@ -13,6 +13,9 @@ import {
 } from "viem";
 import { type PublicClientSource, readCall } from "../transport/engine";
 
+/** Canonical CREATE3-deployed protocol proxy, shared across supported chains. */
+export const T3TRIS_FACTORY_ADDRESS: Address = "0x0000000000CC53b5Fd649b80f08b05405779cC71";
+
 const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000" as Hex;
 
 /** Unbounded upward SafeOracle deviation: `2^128 - 1` (`maxUint128`). */
@@ -98,7 +101,6 @@ export interface SafeOracleParams {
 }
 
 export interface DeployVaultArgs {
-  factory: Address;
   chainId: number;
   params: VaultDeployParams;
   safeOracle: SafeOracleParams;
@@ -133,7 +135,7 @@ function paramsTuple(p: VaultDeployParams): readonly unknown[] {
 }
 
 /** `deployVault(params, safeOracle, oracle, salt, referralCode)` calldata. */
-export function encodeDeployVault(args: Omit<DeployVaultArgs, "factory" | "chainId">): Hex {
+export function encodeDeployVault(args: Omit<DeployVaultArgs, "chainId">): Hex {
   return concatHex([
     factory.deployVault.sel,
     encodeAbiParameters(
@@ -155,10 +157,10 @@ export function encodeDeployVault(args: Omit<DeployVaultArgs, "factory" | "chain
 
 export async function previewVaultAddress(
   publicClient: PublicClientSource,
-  args: { factory: Address; deployer: Address; salt: Hex },
+  args: { deployer: Address; salt: Hex },
 ): Promise<Address> {
   const [address] = await readCall<[Address]>(factory.previewVaultAddress, publicClient, {
-    address: args.factory,
+    address: T3TRIS_FACTORY_ADDRESS,
     args: [args.deployer, args.salt],
   });
   return address;

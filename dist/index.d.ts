@@ -5,5 +5,5 @@ export { buildPermitSingleTypedData, encodePermit2Data, PERMIT2_ADDRESS, type Pe
 export { ActionCancelledError, ChainMismatchError, PlatformActionError, type PublicClientSource, type TransactionResult, type WalletClientSource, } from "./onchain/transport/engine.js";
 export type { SettleInput } from "./onchain/vaults/admin.js";
 export { FeeClaimType, type QueuedFee, type QueuedManagementFee, type SettleKind, } from "./onchain/vaults/admin.js";
-export { type DeployVaultArgs, defaultSafeOracle, factoryOracleClone, type GlobalFeesParams, type SafeOracleParams, type VaultDeployParams, } from "./onchain/vaults/deployment.js";
+export { type DeployVaultArgs, defaultSafeOracle, factoryOracleClone, type GlobalFeesParams, type SafeOracleParams, T3TRIS_FACTORY_ADDRESS, type VaultDeployParams, } from "./onchain/vaults/deployment.js";
 export type { EntryFees, ExitFees, GrossTvlData, LastPeriodData, NetDepositFlowData, NetRedeemFlowData, NetTvlData, OpenPreview, SettleDepositsPreview, SettlementPreview, SettlePreview, SettleRedemptionsPreview, UnclaimedFeesData, } from "./onchain/vaults/previews.js";

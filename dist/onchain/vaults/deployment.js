@@ -3,6 +3,8 @@
  */
 import { concatHex, encodeAbiParameters, maxUint128, zeroAddress, } from "viem";
 import { readCall } from "../transport/engine.js";
+/** Canonical CREATE3-deployed protocol proxy, shared across supported chains. */
+export const T3TRIS_FACTORY_ADDRESS = "0x0000000000CC53b5Fd649b80f08b05405779cC71";
 const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 /** Unbounded upward SafeOracle deviation: `2^128 - 1` (`maxUint128`). */
 export const SAFE_ORACLE_DEVIATION_UP = maxUint128;
@@ -94,7 +96,7 @@ export function encodeDeployVault(args) {
 }
 export async function previewVaultAddress(publicClient, args) {
     const [address] = await readCall(factory.previewVaultAddress, publicClient, {
-        address: args.factory,
+        address: T3TRIS_FACTORY_ADDRESS,
         args: [args.deployer, args.salt],
     });
     return address;

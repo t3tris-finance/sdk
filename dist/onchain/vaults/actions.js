@@ -1,7 +1,7 @@
 import { earn, erc20 } from "../abi/vault.js";
 import { bindActions, bindReads } from "../transport/bindings.js";
 import { encodeCall, readCall, requireAccount } from "../transport/engine.js";
-import { encodeDeployVault, previewVaultAddress } from "./deployment.js";
+import { encodeDeployVault, previewVaultAddress, T3TRIS_FACTORY_ADDRESS, } from "./deployment.js";
 /** Explicit contract actions. Funding, approvals, permits and claim-before-redeem are the caller's responsibility. */
 export function makeDepositorActions(clients) {
     const account = () => requireAccount(clients.walletClient);
@@ -9,7 +9,7 @@ export function makeDepositorActions(clients) {
     const builders = {
         create: (i) => ({
             chainId: i.chainId,
-            to: i.factory,
+            to: T3TRIS_FACTORY_ADDRESS,
             data: encodeDeployVault(i),
         }),
         requestDeposit: (i) => tx(i, encodeCall(earn.requestDeposit, [

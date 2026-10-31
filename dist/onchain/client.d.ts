@@ -15,7 +15,6 @@ export declare function createOnchainClient(options: WalletOptions): {
     vaults: {
         read: {
             previewAddress: (input: {
-                factory: Address;
                 deployer: Address;
                 salt: import("viem").Hex;
             } & {

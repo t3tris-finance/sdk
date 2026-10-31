@@ -36,7 +36,6 @@ export interface ClaimRedeemInput extends Target {
 export declare function makeDepositorActions(clients: OnchainClients): {
     read: import("../transport/bindings.js").Reads<{
         previewAddress: (i: {
-            factory: Address;
             deployer: Address;
             salt: Hex;
         }) => Promise<`0x${string}`>;

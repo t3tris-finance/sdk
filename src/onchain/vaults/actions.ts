@@ -2,7 +2,12 @@ import type { Address, Hex } from "viem";
 import { earn, erc20 } from "../abi/vault";
 import { bindActions, bindReads } from "../transport/bindings";
 import { encodeCall, type OnchainClients, readCall, requireAccount } from "../transport/engine";
-import { type DeployVaultArgs, encodeDeployVault, previewVaultAddress } from "./deployment";
+import {
+  type DeployVaultArgs,
+  encodeDeployVault,
+  previewVaultAddress,
+  T3TRIS_FACTORY_ADDRESS,
+} from "./deployment";
 
 interface Target {
   address: Address;
@@ -43,7 +48,7 @@ export function makeDepositorActions(clients: OnchainClients) {
   const builders = {
     create: (i: DeployVaultArgs) => ({
       chainId: i.chainId,
-      to: i.factory,
+      to: T3TRIS_FACTORY_ADDRESS,
       data: encodeDeployVault(i),
     }),
     requestDeposit: (i: RequestDepositInput) =>
@@ -92,7 +97,7 @@ export function makeDepositorActions(clients: OnchainClients) {
       tx(i, encodeCall(earn.claimRedeem, [i.owner ?? account(), i.receiver ?? account(), false])),
   };
   const read = {
-    previewAddress: (i: { factory: Address; deployer: Address; salt: Hex }) =>
+    previewAddress: (i: { deployer: Address; salt: Hex }) =>
       previewVaultAddress(clients.publicClient, i),
     asset: async (i: { address: Address }) =>
       (

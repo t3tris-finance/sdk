@@ -25,6 +25,7 @@ export {
   factoryOracleClone,
   type GlobalFeesParams,
   type SafeOracleParams,
+  T3TRIS_FACTORY_ADDRESS,
   type VaultDeployParams,
 } from "./vaults/deployment";
 export type {

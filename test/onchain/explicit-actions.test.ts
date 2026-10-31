@@ -85,7 +85,6 @@ describe("explicit wallet actions", () => {
     const f = fixture();
     const result = await f.client.vaults.create({
       chainId: 42161,
-      factory: vault,
       salt: hash,
       oracle: factoryOracleClone,
       safeOracle: defaultSafeOracle(account),

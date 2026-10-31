@@ -3,6 +3,8 @@
  */
 import { type Address, type Hex } from "viem";
 import { type PublicClientSource } from "../transport/engine.js";
+/** Canonical CREATE3-deployed protocol proxy, shared across supported chains. */
+export declare const T3TRIS_FACTORY_ADDRESS: Address;
 /** Unbounded upward SafeOracle deviation: `2^128 - 1` (`maxUint128`). */
 export declare const SAFE_ORACLE_DEVIATION_UP: bigint;
 /** 100% down (`1e18` wad). A move of this size can price the oracle at zero. */
@@ -51,7 +53,6 @@ export interface SafeOracleParams {
     maxDeviationDownWad: bigint;
 }
 export interface DeployVaultArgs {
-    factory: Address;
     chainId: number;
     params: VaultDeployParams;
     safeOracle: SafeOracleParams;
@@ -60,9 +61,8 @@ export interface DeployVaultArgs {
     referralCode?: Hex;
 }
 /** `deployVault(params, safeOracle, oracle, salt, referralCode)` calldata. */
-export declare function encodeDeployVault(args: Omit<DeployVaultArgs, "factory" | "chainId">): Hex;
+export declare function encodeDeployVault(args: Omit<DeployVaultArgs, "chainId">): Hex;
 export declare function previewVaultAddress(publicClient: PublicClientSource, args: {
-    factory: Address;
     deployer: Address;
     salt: Hex;
 }): Promise<Address>;
