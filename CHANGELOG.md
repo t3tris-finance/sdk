@@ -5,6 +5,20 @@ SemVer: while it is `0.x`, minor releases may contain breaking changes, each
 listed with migration notes. Deprecations are announced at least one minor
 release before removal.
 
+## 0.6.0 (unreleased)
+
+- `keys.create({ name, scopes?, monthlyQuota? })` creates an independent API key
+  in the same organization using `manage` scope. Returns `{ id, secret }` once.
+- `keys.attachVault` / `keys.detachVault` now take `{ keyId?, vaults: VaultRef[] }`:
+  atomic, idempotent batches of 1–100 references. Omit `keyId` for the calling key;
+  explicit targets must be active keys in the same organization. Returns the
+  normalized processed references as `{ keyId, vaults }`.
+- Replace `keys.lookupVaults` with `keys.hasVaults(refs): Promise<boolean[]>`.
+  Availability results preserve reference order and duplicates (maximum 100).
+- `keys.listVaults` accepts an optional target `keyId` with `manage` scope.
+- New keys behave exactly like keys created in Curate, with no relationship to
+  the creating key. Existing released versions are unchanged.
+
 ## 0.5.0
 
 - `keys.listVaults(input?: PageInput)` returns `Page<Vault>` with real server-side
@@ -75,14 +89,12 @@ Breaking on-chain migration:
 
 ## 0.1.0
 
-- Publishable source now lives in the [sdk repository](https://github.com/t3tris-finance/sdk).
-  npmjs publication is prepared and not enabled.
+- Install the SDK from its [public repository](https://github.com/t3tris-finance/sdk).
 - On-chain actions take an `EngineWalletClient`. `bindEngineClients` adapts a
   viem or wagmi wallet client the caller already has. `createEngineClients`
   still adapts a raw EIP-1193 provider. This package does not depend on
   RainbowKit or wagmi.
-- Removed `STARTER_OFFER`. It was a hardcoded seed, not the live quote, so paying
-  `STARTER_OFFER.usdcUnits` could disagree with operator pricing. Read
+- Removed `STARTER_OFFER`. Read
   `client.billing.getPricing()` and pay
   `usdcUnitsFromCents(pricing.starter.monthlyPriceCents)`.
 - `catalog.listAssets` takes one options object (`{ chainId?, limit?, cursor? }`),
@@ -103,8 +115,7 @@ Breaking on-chain migration:
   `factoryOracleClone` is documented as the zero-address clone sentinel.
 - Added an export-surface snapshot test. Runtime changes to the four documented
   package subpaths now require an explicit review and changelog entry.
-- Documented Core versus on-chain SDK stability tiers; `sdk-internal` and all
-  deep imports remain unsupported implementation details.
+- Use the documented package entry points rather than deep imports.
 
 ## [0.1.0] - 2026-09-28
 

@@ -3,6 +3,12 @@
 A TypeScript client for T3tris vault data and on-chain actions.
 Use API credentials on your backend or connect an existing wallet to submit transactions.
 
+## 0.6.0 preview
+
+This branch contains the unreleased 0.6.0 SDK. For production, install the tagged
+0.5.0 release below and use its documentation. The key-management examples in
+this branch require the 0.6 API contract.
+
 ## Installation
 
 ```sh
@@ -63,11 +69,12 @@ own backend. The T3tris API does not allow cross-origin browser requests.
 | `auth` | SIWE and email authentication, sessions and logout |
 
 Vault queries return the vaults attached to your key. Attach them in Curate or use
-`client.keys.attachVault({ address, chainId })` with the `manage` scope.
+`client.keys.attachVault({ vaults: [{ address, chainId }] })` with the `manage` scope.
 Paginated methods return `{ items, nextCursor? }`. Pass `nextCursor` as `cursor`
 with the same filters to retrieve the next page. `keys.listVaults({ limit, cursor })`
 is paginated too (default 50, maximum 200), ordered by chain ID then address.
-`vaults.getMany(refs)` and `keys.lookupVaults(input)` return bounded arrays.
+`vaults.getMany(refs)` returns a bounded array. `keys.hasVaults(refs)` returns
+one availability boolean per reference, preserving input order and duplicates.
 
 Protected writes require a user session in addition to the API key. Authenticate
 with `client.auth`, then pass `{ session: token }` to the protected method.
@@ -77,6 +84,29 @@ Live events use `client.events.subscribe()` and require the `stream` scope.
 Pass an `AbortSignal` to stop a subscription. Persist a checkpoint only after
 processing delivered events, then supply it as `since` to resume later.
 `onProgress` also reports server watermarks across filtered rows.
+
+## Manage organization keys (0.6 preview)
+
+A backend holding a `manage` key can create independent keys in its organization,
+just like creating keys in Curate. Save the returned secret once:
+
+```ts
+const key = await client.keys.create({
+  name: "Customer integration",
+  scopes: ["public", "stream"],
+});
+await client.keys.attachVault({ keyId: key.id, vaults: [{ chainId, address }] });
+```
+
+There is no parent/child relationship. Revoking the creating key does not revoke
+other keys. A manage key can target any active customer key in its organization.
+Omit `keyId` to target the calling key. Attachment batches take 1–100 references
+and are atomic and idempotent. Results contain the target `keyId` and normalized
+processed references, not its entire attachment collection. Use paginated
+`keys.listVaults({ keyId, limit, cursor })` for that collection.
+
+`hasVaults` checks indexed availability, not membership. Key creation and
+attachments share your organization's existing subscription quotas.
 
 ## Submit an on-chain action
 
