@@ -31,7 +31,7 @@ export interface QueuedManagementFee extends QueuedFee {
     readonly days: number;
 }
 export interface Target {
-    readonly vault: Address;
+    readonly address: Address;
     readonly chainId: number;
 }
 export type SettleInput = Target & {
@@ -55,56 +55,56 @@ export interface WhitelistBatchInput extends Target {
 export declare function makeVaultActions(clients: OnchainClients): {
     read: import("../transport/bindings.js").Reads<{
         curator: (i: {
-            vault: Address;
+            address: Address;
         }) => Promise<`0x${string}`>;
         isOpen: (i: {
-            vault: Address;
+            address: Address;
         }) => Promise<boolean>;
         /** Combined settlement preview with named asset flows and fee breakdown. */
         previewSettleAll: (i: {
-            vault: Address;
+            address: Address;
             feeClaimType?: FeeClaimType;
         }) => Promise<import("./previews.js").SettlePreview>;
         previewSettleDeposits: (i: {
-            vault: Address;
+            address: Address;
             feeClaimType?: FeeClaimType;
         }) => Promise<import("./previews.js").SettleDepositsPreview>;
         previewSettleRedemptions: (i: {
-            vault: Address;
+            address: Address;
             fullClaim?: boolean;
         }) => Promise<import("./previews.js").SettleRedemptionsPreview>;
         previewOpen: (i: {
-            vault: Address;
+            address: Address;
             feeClaimType?: FeeClaimType;
         }) => Promise<import("./previews.js").OpenPreview>;
         previewEnableEndOfFund: (i: {
-            vault: Address;
+            address: Address;
             feeClaimType?: FeeClaimType;
         }) => Promise<import("./previews.js").OpenPreview>;
         previewCloseFund: (i: {
-            vault: Address;
+            address: Address;
         }) => Promise<bigint>;
         previewClaimFees: (i: {
-            vault: Address;
+            address: Address;
             shares: bigint;
         }) => Promise<bigint>;
         /** Live share balance of one holder — the vault IS the share token. Used
          * to skip batched-mint entries already at their target balance. */
         balanceOf: (i: {
-            vault: Address;
+            address: Address;
             owner: Address;
         }) => Promise<bigint>;
         nextEntryFee: (i: {
-            vault: Address;
+            address: Address;
         }) => Promise<QueuedFee>;
         nextExitFee: (i: {
-            vault: Address;
+            address: Address;
         }) => Promise<QueuedFee>;
         nextPerformanceFee: (i: {
-            vault: Address;
+            address: Address;
         }) => Promise<QueuedFee>;
         nextManagementFee: (i: {
-            vault: Address;
+            address: Address;
         }) => Promise<QueuedManagementFee>;
     }>;
     settle: (input: SettleInput) => Promise<import("../index.js").TransactionResult>;

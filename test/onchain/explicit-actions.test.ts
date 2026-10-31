@@ -78,7 +78,7 @@ function fixture() {
     },
   };
 }
-const target = { chainId: 42161, vault };
+const target = { chainId: 42161, address: vault };
 
 describe("explicit wallet actions", () => {
   test("create submits exactly one creation transaction", async () => {

@@ -115,7 +115,7 @@ assert(methods.length === 0, "constructors must not connect or perform IO");
 for (const walletClient of [connected, raw]) {
   assert(typeof walletClient.vaults.create === "function", "wallet capability selected");
   assert(!("catalog" in walletClient), "wallet mode is not API mode");
-  const result = await walletClient.vaults.read.asset({ chainId: 42161, vault: account });
+  const result = await walletClient.vaults.read.asset({ chainId: 42161, address: account });
   assert(result.toLowerCase() === asset.toLowerCase(), "packaged wallet read without API URL");
 }
 console.log("node runtime ok");
@@ -145,11 +145,11 @@ const usage: Promise<UsageSummary> = client.billing.getUsage();
 const pricing: Promise<BillingPricing> = client.billing.getPricing();
 const attached: Promise<Page<Vault>> = client.keys.listVaults({ limit: 100, cursor: "opaque" });
 declare const connected: T3trisWalletClient;
-const preview: Promise<import("@t3tris/sdk").SettlePreview> = connected.vaults.read.previewSettleAll({chainId: 42161, vault: "0x0000000000000000000000000000000000000001"});
+const preview: Promise<import("@t3tris/sdk").SettlePreview> = connected.vaults.read.previewSettleAll({chainId: 42161, address: "0x0000000000000000000000000000000000000001"});
 // @ts-expect-error fullClaim is exclusive to redemption settlement
-connected.vaults.settle({chainId: 42161, vault: "0x0000000000000000000000000000000000000001", kind: "both", fullClaim: true});
+connected.vaults.settle({chainId: 42161, address: "0x0000000000000000000000000000000000000001", kind: "both", fullClaim: true});
 // @ts-expect-error feeClaimType is not a redemption option
-connected.vaults.settle({chainId: 42161, vault: "0x0000000000000000000000000000000000000001", kind: "redemptions", feeClaimType: 0});
+connected.vaults.settle({chainId: 42161, address: "0x0000000000000000000000000000000000000001", kind: "redemptions", feeClaimType: 0});
 void [attached, preview];
 const address: Address = "0x0000000000000000000000000000000000000001";
 const event: StreamEvent | null = null;

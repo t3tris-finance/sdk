@@ -77,37 +77,37 @@ export declare const ORACLE_ADMIN_SET_MAX_PPS_DEVIATION_UP_ROLE: Hex;
 export declare const ORACLE_SET_MAX_PPS_DEVIATION_DOWN_ROLE: Hex;
 export declare const ORACLE_ADMIN_SET_MAX_PPS_DEVIATION_DOWN_ROLE: Hex;
 export interface Target {
-    readonly vault: Address;
+    readonly address: Address;
     readonly chainId: number;
 }
 /** Build the `curate.roles` namespace: writes + membership reads. */
 export declare function makeRoleActions(clients: OnchainClients): {
     read: import("../transport/bindings.js").Reads<{
         has: (i: {
-            vault: Address;
+            address: Address;
             role: Hex;
             account: Address;
         }) => Promise<boolean>;
         adminOf: (i: {
-            vault: Address;
+            address: Address;
             role: Hex;
         }) => Promise<`0x${string}`>;
         memberCount: (i: {
-            vault: Address;
+            address: Address;
             role: Hex;
         }) => Promise<bigint>;
         members: (i: {
-            vault: Address;
+            address: Address;
             role: Hex;
         }) => Promise<readonly `0x${string}`[]>;
         defaultAdminRole: (i: {
-            vault: Address;
+            address: Address;
         }) => Promise<`0x${string}`>;
         nextDefaultAdminRecipient: (i: {
-            vault: Address;
+            address: Address;
         }) => Promise<`0x${string}`>;
         nextGovernanceAdminRecipient: (i: {
-            vault: Address;
+            address: Address;
         }) => Promise<`0x${string}`>;
     }>;
     grant: (input: Target & {

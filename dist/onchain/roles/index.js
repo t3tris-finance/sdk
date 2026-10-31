@@ -80,16 +80,16 @@ export const ORACLE_ADMIN_SET_MAX_PPS_DEVIATION_UP_ROLE = idOf("ADMIN", "SET", "
 export const ORACLE_SET_MAX_PPS_DEVIATION_DOWN_ROLE = idOf("SET", "MAX", "PPS", "DEVIATION", "DOWN");
 export const ORACLE_ADMIN_SET_MAX_PPS_DEVIATION_DOWN_ROLE = idOf("ADMIN", "SET", "MAX", "PPS", "DEVIATION", "DOWN");
 const builders = {
-    grant: (i) => txFlow(i.chainId, i.vault, encodeRole("grant", i.role, i.account)),
-    revoke: (i) => txFlow(i.chainId, i.vault, encodeRole("revoke", i.role, i.account)),
-    renounceRole: (i) => txFlow(i.chainId, i.vault, encodeRole("renounce", i.role, i.account)),
+    grant: (i) => txFlow(i.chainId, i.address, encodeRole("grant", i.role, i.account)),
+    revoke: (i) => txFlow(i.chainId, i.address, encodeRole("revoke", i.role, i.account)),
+    renounceRole: (i) => txFlow(i.chainId, i.address, encodeRole("renounce", i.role, i.account)),
     /** Grant many roles to one account in a single multicall. Roles are granted
      * in the given order — pass admin roles before their leaves. */
     grantAll: (i) => {
         if (i.roles.length === 0)
             throw new Error("curate.roles: grantAll requires at least one role");
         const subcalls = i.roles.map((role) => encodeRole("grant", role, i.account));
-        return txFlow(i.chainId, i.vault, encodeMulticall(subcalls));
+        return txFlow(i.chainId, i.address, encodeMulticall(subcalls));
     },
     /** Grant many (role, account) pairs in ONE multicall — admins first so every
      * leaf grant is authorised by an admin installed earlier in the same tx. */
@@ -97,20 +97,20 @@ const builders = {
         if (i.calls.length === 0)
             throw new Error("curate.roles: grantBatch requires at least one call");
         const subcalls = i.calls.map((c) => encodeRole("grant", c.role, c.account));
-        return txFlow(i.chainId, i.vault, encodeMulticall(subcalls));
+        return txFlow(i.chainId, i.address, encodeMulticall(subcalls));
     },
     /** Revoke many (role, account) pairs in ONE multicall (the per-wallet diff). */
     revokeBatch: (i) => {
         if (i.calls.length === 0)
             throw new Error("curate.roles: revokeBatch requires at least one call");
         const subcalls = i.calls.map((c) => encodeRole("revoke", c.role, c.account));
-        return txFlow(i.chainId, i.vault, encodeMulticall(subcalls));
+        return txFlow(i.chainId, i.address, encodeMulticall(subcalls));
     },
     // 2-step admin handover
-    initGrantAdminRole: (i) => txFlow(i.chainId, i.vault, encodeRole("initGrantAdmin", i.account, i.role)),
-    acceptAdminRole: (i) => txFlow(i.chainId, i.vault, encodeRole("acceptAdmin", i.role)),
-    cancelGrantAdminRole: (i) => txFlow(i.chainId, i.vault, encodeRole("cancelGrantAdmin", i.role)),
-    applyAdminBurn: (i) => txFlow(i.chainId, i.vault, encodeRole("applyAdminBurn", i.role)),
+    initGrantAdminRole: (i) => txFlow(i.chainId, i.address, encodeRole("initGrantAdmin", i.account, i.role)),
+    acceptAdminRole: (i) => txFlow(i.chainId, i.address, encodeRole("acceptAdmin", i.role)),
+    cancelGrantAdminRole: (i) => txFlow(i.chainId, i.address, encodeRole("cancelGrantAdmin", i.role)),
+    applyAdminBurn: (i) => txFlow(i.chainId, i.address, encodeRole("applyAdminBurn", i.role)),
 };
 /** Encode one roles-table op by name (keeps the builder map free of repeated
  * selector plumbing while staying typed against the table). */
@@ -121,27 +121,27 @@ function encodeRole(op, ...args) {
 export function makeRoleActions(clients) {
     const read = {
         has: async (i) => (await readCall(curateRoles.has, clients.publicClient, {
-            address: i.vault,
+            address: i.address,
             args: [i.role, i.account],
         }))[0],
         adminOf: async (i) => (await readCall(curateRoles.adminOf, clients.publicClient, {
-            address: i.vault,
+            address: i.address,
             args: [i.role],
         }))[0],
         memberCount: async (i) => (await readCall(curateRoles.memberCount, clients.publicClient, {
-            address: i.vault,
+            address: i.address,
             args: [i.role],
         }))[0],
         members: async (i) => (await readCall(curateRoles.members, clients.publicClient, {
-            address: i.vault,
+            address: i.address,
             args: [i.role],
         }))[0],
         defaultAdminRole: async (i) => (await readCall(curateRoles.defaultAdminRole, clients.publicClient, {
-            address: i.vault,
+            address: i.address,
             args: [],
         }))[0],
-        nextDefaultAdminRecipient: async (i) => (await readCall(curateRoles.nextDefaultAdminRecipient, clients.publicClient, { address: i.vault, args: [] }))[0],
-        nextGovernanceAdminRecipient: async (i) => (await readCall(curateRoles.nextGovernanceAdminRecipient, clients.publicClient, { address: i.vault, args: [] }))[0],
+        nextDefaultAdminRecipient: async (i) => (await readCall(curateRoles.nextDefaultAdminRecipient, clients.publicClient, { address: i.address, args: [] }))[0],
+        nextGovernanceAdminRecipient: async (i) => (await readCall(curateRoles.nextGovernanceAdminRecipient, clients.publicClient, { address: i.address, args: [] }))[0],
     };
     return { ...bindActions(clients, builders), read: bindReads(clients, read) };
 }

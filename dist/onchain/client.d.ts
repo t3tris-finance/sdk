@@ -22,119 +22,119 @@ export declare function createOnchainClient(options: WalletOptions): {
                 chainId: number;
             }) => Promise<`0x${string}`>;
             asset: (input: {
-                vault: Address;
+                address: Address;
             } & {
                 chainId: number;
             }) => Promise<`0x${string}`>;
             totalSupply: (input: {
-                vault: Address;
+                address: Address;
             } & {
                 chainId: number;
             }) => Promise<bigint>;
             maxDeposit: (input: {
-                vault: Address;
+                address: Address;
                 receiver: Address;
             } & {
                 chainId: number;
             }) => Promise<bigint>;
             maxRedeem: (input: {
-                vault: Address;
+                address: Address;
                 owner: Address;
             } & {
                 chainId: number;
             }) => Promise<bigint>;
             previewDeposit: (input: {
-                vault: Address;
+                address: Address;
                 amount: bigint;
             } & {
                 chainId: number;
             }) => Promise<bigint>;
             previewRedeem: (input: {
-                vault: Address;
+                address: Address;
                 shares: bigint;
             } & {
                 chainId: number;
             }) => Promise<bigint>;
             previewClaimDeposit: (input: {
-                vault: Address;
+                address: Address;
                 owner: Address;
             } & {
                 chainId: number;
             }) => Promise<bigint>;
             curator: (input: {
-                vault: Address;
+                address: Address;
             } & {
                 chainId: number;
             }) => Promise<`0x${string}`>;
             isOpen: (input: {
-                vault: Address;
+                address: Address;
             } & {
                 chainId: number;
             }) => Promise<boolean>;
             previewSettleAll: (input: {
-                vault: Address;
+                address: Address;
                 feeClaimType?: import("../index.js").FeeClaimType;
             } & {
                 chainId: number;
             }) => Promise<import("../index.js").SettlePreview>;
             previewSettleDeposits: (input: {
-                vault: Address;
+                address: Address;
                 feeClaimType?: import("../index.js").FeeClaimType;
             } & {
                 chainId: number;
             }) => Promise<import("../index.js").SettleDepositsPreview>;
             previewSettleRedemptions: (input: {
-                vault: Address;
+                address: Address;
                 fullClaim?: boolean;
             } & {
                 chainId: number;
             }) => Promise<import("../index.js").SettleRedemptionsPreview>;
             previewOpen: (input: {
-                vault: Address;
+                address: Address;
                 feeClaimType?: import("../index.js").FeeClaimType;
             } & {
                 chainId: number;
             }) => Promise<import("../index.js").OpenPreview>;
             previewEnableEndOfFund: (input: {
-                vault: Address;
+                address: Address;
                 feeClaimType?: import("../index.js").FeeClaimType;
             } & {
                 chainId: number;
             }) => Promise<import("../index.js").OpenPreview>;
             previewCloseFund: (input: {
-                vault: Address;
+                address: Address;
             } & {
                 chainId: number;
             }) => Promise<bigint>;
             previewClaimFees: (input: {
-                vault: Address;
+                address: Address;
                 shares: bigint;
             } & {
                 chainId: number;
             }) => Promise<bigint>;
             balanceOf: (input: {
-                vault: Address;
+                address: Address;
                 owner: Address;
             } & {
                 chainId: number;
             }) => Promise<bigint>;
             nextEntryFee: (input: {
-                vault: Address;
+                address: Address;
             } & {
                 chainId: number;
             }) => Promise<import("../index.js").QueuedFee>;
             nextExitFee: (input: {
-                vault: Address;
+                address: Address;
             } & {
                 chainId: number;
             }) => Promise<import("../index.js").QueuedFee>;
             nextPerformanceFee: (input: {
-                vault: Address;
+                address: Address;
             } & {
                 chainId: number;
             }) => Promise<import("../index.js").QueuedFee>;
             nextManagementFee: (input: {
-                vault: Address;
+                address: Address;
             } & {
                 chainId: number;
             }) => Promise<import("../index.js").QueuedManagementFee>;
@@ -255,30 +255,30 @@ export declare function createOnchainClient(options: WalletOptions): {
     roles: {
         read: import("./transport/bindings.js").Reads<{
             has: (i: {
-                vault: Address;
+                address: Address;
                 role: import("viem").Hex;
                 account: Address;
             }) => Promise<boolean>;
             adminOf: (i: {
-                vault: Address;
+                address: Address;
                 role: import("viem").Hex;
             }) => Promise<`0x${string}`>;
             memberCount: (i: {
-                vault: Address;
+                address: Address;
                 role: import("viem").Hex;
             }) => Promise<bigint>;
             members: (i: {
-                vault: Address;
+                address: Address;
                 role: import("viem").Hex;
             }) => Promise<readonly `0x${string}`[]>;
             defaultAdminRole: (i: {
-                vault: Address;
+                address: Address;
             }) => Promise<`0x${string}`>;
             nextDefaultAdminRecipient: (i: {
-                vault: Address;
+                address: Address;
             }) => Promise<`0x${string}`>;
             nextGovernanceAdminRecipient: (i: {
-                vault: Address;
+                address: Address;
             }) => Promise<`0x${string}`>;
         }>;
         grant: (input: import("./roles/index.js").Target & {

@@ -2,7 +2,7 @@ import type { Address, Hex } from "viem";
 import { type OnchainClients } from "../transport/engine.js";
 import { type DeployVaultArgs } from "./deployment.js";
 interface Target {
-    vault: Address;
+    address: Address;
     chainId: number;
 }
 export interface DepositInput extends Target {
@@ -51,29 +51,29 @@ export declare function makeDepositorActions(clients: OnchainClients): {
             salt: Hex;
         }) => Promise<`0x${string}`>;
         asset: (i: {
-            vault: Address;
+            address: Address;
         }) => Promise<`0x${string}`>;
         totalSupply: (i: {
-            vault: Address;
+            address: Address;
         }) => Promise<bigint>;
         maxDeposit: (i: {
-            vault: Address;
+            address: Address;
             receiver: Address;
         }) => Promise<bigint>;
         maxRedeem: (i: {
-            vault: Address;
+            address: Address;
             owner: Address;
         }) => Promise<bigint>;
         previewDeposit: (i: {
-            vault: Address;
+            address: Address;
             amount: bigint;
         }) => Promise<bigint>;
         previewRedeem: (i: {
-            vault: Address;
+            address: Address;
             shares: bigint;
         }) => Promise<bigint>;
         previewClaimDeposit: (i: {
-            vault: Address;
+            address: Address;
             owner: Address;
         }) => Promise<bigint>;
     }>;

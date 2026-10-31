@@ -93,7 +93,7 @@ describe("createCurate actions", () => {
       ...clients,
       publicClient: { ...clients.publicClient, call: async () => ({ data: output }) },
     });
-    expect(await curate.vaults.read.nextManagementFee({ vault: VAULT, chainId: 42161 })).toEqual({
+    expect(await curate.vaults.read.nextManagementFee({ address: VAULT, chainId: 42161 })).toEqual({
       pending: false,
       daysPending: false,
       wad: 0n,
@@ -106,7 +106,7 @@ describe("createCurate actions", () => {
     const curate = createT3trisClient(clients);
     const result = await curate.vaults.setDepositEnabled({
       chainId: 42161,
-      vault: VAULT,
+      address: VAULT,
       enabled: false,
     });
     expect(result.status).toBe("submitted");
@@ -120,7 +120,7 @@ describe("createCurate actions", () => {
     const curate = createT3trisClient(clients);
     await curate.vaults.settle({
       chainId: 42161,
-      vault: VAULT,
+      address: VAULT,
       kind: "both",
       feeClaimType: FeeClaimType.Full,
     });
@@ -133,7 +133,7 @@ describe("createCurate actions", () => {
     const other = "0x3333333333333333333333333333333333333333" as Address;
     await curate.vaults.applyDepositWhitelist({
       chainId: 42161,
-      vault: VAULT,
+      address: VAULT,
       addresses: [ACCOUNT, other],
       whitelisted: true,
     });
@@ -148,7 +148,7 @@ describe("createCurate actions", () => {
     const { sent, clients } = fakeClients();
     const curate = createT3trisClient(clients);
     const roles = [VAULT_SETTLE_ROLE, VAULT_PAUSE_ROLE];
-    await curate.roles.grantAll({ chainId: 42161, vault: VAULT, account: ACCOUNT, roles });
+    await curate.roles.grantAll({ chainId: 42161, address: VAULT, account: ACCOUNT, roles });
     const expected = encodeMulticall(
       roles.map((role) => encodeCall(curateRoles.grant, [role, ACCOUNT])),
     );
@@ -169,7 +169,7 @@ describe("createCurate actions", () => {
     const other = "0x4444444444444444444444444444444444444444" as Address;
     await curate.vaults.updateSharesBatched({
       chainId: 42161,
-      vault: VAULT,
+      address: VAULT,
       receivers: [ACCOUNT, other],
       values: [1n, 2n],
     });
@@ -188,7 +188,7 @@ describe("createCurate actions", () => {
     expect(
       curate.vaults.updateSharesBatched({
         chainId: 42161,
-        vault: VAULT,
+        address: VAULT,
         receivers: [],
         values: [],
       }),
@@ -202,7 +202,7 @@ describe("createCurate actions", () => {
     expect(
       curate.vaults.applyWithdrawWhitelist({
         chainId: 42161,
-        vault: VAULT,
+        address: VAULT,
         addresses: [],
         whitelisted: true,
       }),

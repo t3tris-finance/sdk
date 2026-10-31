@@ -51,7 +51,7 @@ function fixture(abi: readonly AbiParameter[], value: readonly unknown[]) {
 describe("named contract previews", () => {
   test("combined settlement maps every nested and scalar field", async () => {
     const client = fixture(curateVault.previewSettleAll.out, combined);
-    const result = await client.vaults.read.previewSettleAll({ chainId: 42161, vault });
+    const result = await client.vaults.read.previewSettleAll({ chainId: 42161, address: vault });
     expect(result).toEqual({
       lastPeriodData: {
         oldTotalNetAssets: 1n,
@@ -85,7 +85,7 @@ describe("named contract previews", () => {
   test("open and end-of-fund name the silo flow separately from curator payout", async () => {
     for (const method of ["previewOpen", "previewEnableEndOfFund"] as const) {
       const client = fixture(curateVault.previewOpenFund.out, combined);
-      const result = await client.vaults.read[method]({ chainId: 42161, vault });
+      const result = await client.vaults.read[method]({ chainId: 42161, address: vault });
       expect(result.assetsToSilo).toBe(27n);
       expect(result.assetsFromCurator).toBe(29n);
       expect("assetsToCurator" in result).toBe(false);
@@ -93,7 +93,10 @@ describe("named contract previews", () => {
   });
   test("deposit-only and redemption-only layouts have independent meanings", async () => {
     const client = fixture(curateVault.previewSettleDeposits.out, flow);
-    const deposits = await client.vaults.read.previewSettleDeposits({ chainId: 42161, vault });
+    const deposits = await client.vaults.read.previewSettleDeposits({
+      chainId: 42161,
+      address: vault,
+    });
     expect(deposits.assetsFromCurator).toBe(27n);
     expect(deposits.sharesToFeeRecipient).toBe(28n);
     expect(deposits.sharesToMint).toBe(29n);
@@ -101,7 +104,7 @@ describe("named contract previews", () => {
     expect(deposits.netDepositFlowData).toEqual({ netDepositAssets: 12n, netDepositShares: 13n });
     const redemptions = await client.vaults.read.previewSettleRedemptions({
       chainId: 42161,
-      vault,
+      address: vault,
     });
     expect(redemptions.currentRequestId).toBe(24n);
     expect(redemptions.sharesToRedeem).toBe(25n);

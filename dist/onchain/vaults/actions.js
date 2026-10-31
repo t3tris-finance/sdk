@@ -5,7 +5,7 @@ import { encodeDeployVault, previewVaultAddress } from "./deployment.js";
 /** Explicit contract actions. Funding, approvals, permits and claim-before-redeem are the caller's responsibility. */
 export function makeDepositorActions(clients) {
     const account = () => requireAccount(clients.walletClient);
-    const tx = (i, data) => ({ chainId: i.chainId, to: i.vault, data });
+    const tx = (i, data) => ({ chainId: i.chainId, to: i.address, data });
     const builders = {
         create: (i) => ({
             chainId: i.chainId,
@@ -48,31 +48,31 @@ export function makeDepositorActions(clients) {
     const read = {
         previewAddress: (i) => previewVaultAddress(clients.publicClient, i),
         asset: async (i) => (await readCall(earn.underlying, clients.publicClient, {
-            address: i.vault,
+            address: i.address,
             args: [],
         }))[0],
         totalSupply: async (i) => (await readCall(erc20.totalSupply, clients.publicClient, {
-            address: i.vault,
+            address: i.address,
             args: [],
         }))[0],
         maxDeposit: async (i) => (await readCall(earn.maxDeposit, clients.publicClient, {
-            address: i.vault,
+            address: i.address,
             args: [i.receiver],
         }))[0],
         maxRedeem: async (i) => (await readCall(earn.maxRedeem, clients.publicClient, {
-            address: i.vault,
+            address: i.address,
             args: [i.owner],
         }))[0],
         previewDeposit: async (i) => (await readCall(earn.previewDeposit, clients.publicClient, {
-            address: i.vault,
+            address: i.address,
             args: [i.amount],
         }))[0],
         previewRedeem: async (i) => (await readCall(earn.previewRedeem, clients.publicClient, {
-            address: i.vault,
+            address: i.address,
             args: [i.shares],
         }))[0],
         previewClaimDeposit: async (i) => (await readCall(earn.previewClaimDeposit, clients.publicClient, {
-            address: i.vault,
+            address: i.address,
             args: [i.owner],
         }))[0],
     };

@@ -5,7 +5,7 @@ import { encodeCall, type OnchainClients, readCall, requireAccount } from "../tr
 import { type DeployVaultArgs, encodeDeployVault, previewVaultAddress } from "./deployment";
 
 interface Target {
-  vault: Address;
+  address: Address;
   chainId: number;
 }
 export interface DepositInput extends Target {
@@ -49,7 +49,7 @@ export interface ClaimRedeemInput extends Target {
 /** Explicit contract actions. Funding, approvals, permits and claim-before-redeem are the caller's responsibility. */
 export function makeDepositorActions(clients: OnchainClients) {
   const account = () => requireAccount(clients.walletClient);
-  const tx = (i: Target, data: Hex) => ({ chainId: i.chainId, to: i.vault, data });
+  const tx = (i: Target, data: Hex) => ({ chainId: i.chainId, to: i.address, data });
   const builders = {
     create: (i: DeployVaultArgs) => ({
       chainId: i.chainId,
@@ -115,52 +115,52 @@ export function makeDepositorActions(clients: OnchainClients) {
   const read = {
     previewAddress: (i: { factory: Address; deployer: Address; salt: Hex }) =>
       previewVaultAddress(clients.publicClient, i),
-    asset: async (i: { vault: Address }) =>
+    asset: async (i: { address: Address }) =>
       (
         await readCall<[Address]>(earn.underlying, clients.publicClient, {
-          address: i.vault,
+          address: i.address,
           args: [],
         })
       )[0],
-    totalSupply: async (i: { vault: Address }) =>
+    totalSupply: async (i: { address: Address }) =>
       (
         await readCall<[bigint]>(erc20.totalSupply, clients.publicClient, {
-          address: i.vault,
+          address: i.address,
           args: [],
         })
       )[0],
-    maxDeposit: async (i: { vault: Address; receiver: Address }) =>
+    maxDeposit: async (i: { address: Address; receiver: Address }) =>
       (
         await readCall<[bigint]>(earn.maxDeposit, clients.publicClient, {
-          address: i.vault,
+          address: i.address,
           args: [i.receiver],
         })
       )[0],
-    maxRedeem: async (i: { vault: Address; owner: Address }) =>
+    maxRedeem: async (i: { address: Address; owner: Address }) =>
       (
         await readCall<[bigint]>(earn.maxRedeem, clients.publicClient, {
-          address: i.vault,
+          address: i.address,
           args: [i.owner],
         })
       )[0],
-    previewDeposit: async (i: { vault: Address; amount: bigint }) =>
+    previewDeposit: async (i: { address: Address; amount: bigint }) =>
       (
         await readCall<[bigint]>(earn.previewDeposit, clients.publicClient, {
-          address: i.vault,
+          address: i.address,
           args: [i.amount],
         })
       )[0],
-    previewRedeem: async (i: { vault: Address; shares: bigint }) =>
+    previewRedeem: async (i: { address: Address; shares: bigint }) =>
       (
         await readCall<[bigint]>(earn.previewRedeem, clients.publicClient, {
-          address: i.vault,
+          address: i.address,
           args: [i.shares],
         })
       )[0],
-    previewClaimDeposit: async (i: { vault: Address; owner: Address }) =>
+    previewClaimDeposit: async (i: { address: Address; owner: Address }) =>
       (
         await readCall<[bigint]>(earn.previewClaimDeposit, clients.publicClient, {
-          address: i.vault,
+          address: i.address,
           args: [i.owner],
         })
       )[0],
