@@ -3,6 +3,11 @@
 A TypeScript client for T3tris vault data and on-chain actions.
 Use API credentials on your backend or connect an existing wallet to submit transactions.
 
+> **Unstable API and SDK:** SDK **0.7.0** targets API **`/v0`**. Breaking changes
+> may occur before API `/v1` and SDK `1.0.0`. Pin your SDK version and review the
+> changelog before upgrading. Pinning the SDK does not freeze the API server;
+> server changes can also require integration updates.
+
 ## Installation
 
 ```sh

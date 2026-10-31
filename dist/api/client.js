@@ -248,7 +248,7 @@ export function createApiClient(options = {}) {
                 return;
             let ticket;
             try {
-                const minted = await request("/v1/stream/ticket", {
+                const minted = await request("/v0/stream/ticket", {
                     method: "POST",
                     signal: subscribeOptions.signal,
                 });
@@ -277,7 +277,7 @@ export function createApiClient(options = {}) {
             if (filter.types !== undefined && filter.types.length > 0) {
                 params.set("types", filter.types.join(","));
             }
-            const opened = new WebSocket(`${wsBase}/v1/stream?${params.toString()}`);
+            const opened = new WebSocket(`${wsBase}/v0/stream?${params.toString()}`);
             // Constructor can abort synchronously. close() already returned and
             // will not see this socket — close it here and do not attach handlers.
             if (ended) {
@@ -369,15 +369,15 @@ export function createApiClient(options = {}) {
     };
     return {
         catalog: {
-            listChains: (input) => request(`/v1/chains${q({ ...input })}`),
-            listAssets: (input) => request(`/v1/assets${q({ ...input })}`),
+            listChains: (input) => request(`/v0/chains${q({ ...input })}`),
+            listAssets: (input) => request(`/v0/assets${q({ ...input })}`),
         },
         billing: {
-            getPricing: () => request("/v1/billing/pricing"),
-            getUsage: () => request("/v1/key/usage"),
+            getPricing: () => request("/v0/billing/pricing"),
+            getUsage: () => request("/v0/key/usage"),
         },
         vaults: {
-            list: (input) => request(`/v1/vaults${q({
+            list: (input) => request(`/v0/vaults${q({
                 chainIds: input?.chainIds?.join(","),
                 assetAddress: input?.assetAddress,
                 curatorAddress: input?.curatorAddress,
@@ -389,60 +389,60 @@ export function createApiClient(options = {}) {
                 limit: input?.limit,
                 cursor: input?.cursor,
             })}`),
-            get: (ref) => request(`/${refPath("v1/vaults", ref)}`),
+            get: (ref) => request(`/${refPath("v0/vaults", ref)}`),
             getMany: async (refs) => {
                 if (refs.length > 100)
                     throw new RangeError("vaults.getMany accepts at most 100 references.");
                 if (refs.length === 0)
                     return [];
-                const page = await request(`/v1/vaults/refs${q({ refs: refs.map((r) => `${r.chainId}:${r.address.toLowerCase()}`).join(",") })}`);
+                const page = await request(`/v0/vaults/refs${q({ refs: refs.map((r) => `${r.chainId}:${r.address.toLowerCase()}`).join(",") })}`);
                 return page.items;
             },
-            listHistory: (ref, input) => request(`/${refPath("v1/vaults", ref)}/history${q({
+            listHistory: (ref, input) => request(`/${refPath("v0/vaults", ref)}/history${q({
                 range: input?.range,
                 limit: input?.limit,
                 cursor: input?.cursor,
             })}`),
-            getComposition: (ref) => request(`/${refPath("v1/vaults", ref)}/composition`),
-            listActivity: (ref, input) => request(`/${refPath("v1/vaults", ref)}/activity${q({ ...input })}`),
-            listAnnotations: (ref, input) => request(`/${refPath("v1/vaults", ref)}/annotations${q({ limit: input?.limit, cursor: input?.cursor })}`),
-            getGovernance: (ref) => request(`/${refPath("v1/vaults", ref)}/governance`),
-            updateMetadata: (ref, input, auth) => request(`/${refPath("v1/vaults", ref)}/metadata`, jsonInit("PUT", input), auth),
-            createAnnotation: (ref, input, auth) => request(`/${refPath("v1/vaults", ref)}/annotations`, jsonInit("POST", input), auth),
-            updateAnnotation: (ref, annotationId, input, auth) => request(`/${refPath("v1/vaults", ref)}/annotations/${encodeURIComponent(annotationId)}`, jsonInit("PUT", input), auth),
+            getComposition: (ref) => request(`/${refPath("v0/vaults", ref)}/composition`),
+            listActivity: (ref, input) => request(`/${refPath("v0/vaults", ref)}/activity${q({ ...input })}`),
+            listAnnotations: (ref, input) => request(`/${refPath("v0/vaults", ref)}/annotations${q({ limit: input?.limit, cursor: input?.cursor })}`),
+            getGovernance: (ref) => request(`/${refPath("v0/vaults", ref)}/governance`),
+            updateMetadata: (ref, input, auth) => request(`/${refPath("v0/vaults", ref)}/metadata`, jsonInit("PUT", input), auth),
+            createAnnotation: (ref, input, auth) => request(`/${refPath("v0/vaults", ref)}/annotations`, jsonInit("POST", input), auth),
+            updateAnnotation: (ref, annotationId, input, auth) => request(`/${refPath("v0/vaults", ref)}/annotations/${encodeURIComponent(annotationId)}`, jsonInit("PUT", input), auth),
             deleteAnnotation: async (ref, annotationId, auth) => {
-                await request(`/${refPath("v1/vaults", ref)}/annotations/${encodeURIComponent(annotationId)}`, { method: "DELETE" }, auth);
+                await request(`/${refPath("v0/vaults", ref)}/annotations/${encodeURIComponent(annotationId)}`, { method: "DELETE" }, auth);
             },
         },
         accounts: {
-            portfolio: (input) => request(`/v1/accounts/${input.address.toLowerCase()}/portfolio`),
-            listVaults: (input) => request(`/v1/accounts/${input.address.toLowerCase()}/vaults${q({
+            portfolio: (input) => request(`/v0/accounts/${input.address.toLowerCase()}/portfolio`),
+            listVaults: (input) => request(`/v0/accounts/${input.address.toLowerCase()}/vaults${q({
                 limit: input.limit,
                 cursor: input.cursor,
             })}`),
-            listPositions: (input) => request(`/v1/accounts/${input.address.toLowerCase()}/positions${q({
+            listPositions: (input) => request(`/v0/accounts/${input.address.toLowerCase()}/positions${q({
                 chainId: input.chainId,
                 limit: input.limit,
                 cursor: input.cursor,
             })}`),
-            listActivity: (input) => request(`/v1/accounts/${input.address.toLowerCase()}/activity${q({
+            listActivity: (input) => request(`/v0/accounts/${input.address.toLowerCase()}/activity${q({
                 chainId: input.chainId,
                 limit: input.limit,
                 cursor: input.cursor,
                 categories: input.categories,
             })}`),
-            listFavorites: (input) => request(`/v1/accounts/${input.address.toLowerCase()}/favorites`),
-            setFavorite: (input, auth) => request(`/v1/accounts/${input.address.toLowerCase()}/favorites`, jsonInit("PUT", {
+            listFavorites: (input) => request(`/v0/accounts/${input.address.toLowerCase()}/favorites`),
+            setFavorite: (input, auth) => request(`/v0/accounts/${input.address.toLowerCase()}/favorites`, jsonInit("PUT", {
                 chainId: input.chainId,
                 vault: input.vault,
                 ...(input.pinned !== undefined ? { pinned: input.pinned } : {}),
             }), auth),
             deleteFavorite: async (input, auth) => {
-                await request(`/v1/accounts/${input.address.toLowerCase()}/favorites/${input.chainId}/${input.vault.toLowerCase()}`, { method: "DELETE" }, auth);
+                await request(`/v0/accounts/${input.address.toLowerCase()}/favorites/${input.chainId}/${input.vault.toLowerCase()}`, { method: "DELETE" }, auth);
             },
         },
         events: {
-            list: (input) => request(`/v1/events${q({
+            list: (input) => request(`/v0/events${q({
                 after: input?.after,
                 types: input?.types?.join(","),
                 limit: input?.limit,
@@ -451,27 +451,27 @@ export function createApiClient(options = {}) {
             subscribe,
         },
         keys: {
-            create: (input) => request("/v1/key/keys", jsonInit("POST", input)),
-            attachVault: (input) => request("/v1/key/vaults", jsonInit("POST", input)),
-            detachVault: (input) => request("/v1/key/vaults", jsonInit("DELETE", input)),
-            listVaults: (input) => request(`/v1/key/vaults${q({ limit: input?.limit, cursor: input?.cursor, keyId: input?.keyId })}`),
+            create: (input) => request("/v0/key/keys", jsonInit("POST", input)),
+            attachVault: (input) => request("/v0/key/vaults", jsonInit("POST", input)),
+            detachVault: (input) => request("/v0/key/vaults", jsonInit("DELETE", input)),
+            listVaults: (input) => request(`/v0/key/vaults${q({ limit: input?.limit, cursor: input?.cursor, keyId: input?.keyId })}`),
             hasVaults: (refs) => {
                 if (refs.length > 100)
                     throw new RangeError("hasVaults accepts at most 100 references");
                 if (refs.length === 0)
                     return Promise.resolve([]);
-                return request("/v1/key/vaults/exists", jsonInit("POST", { refs }));
+                return request("/v0/key/vaults/exists", jsonInit("POST", { refs }));
             },
         },
         auth: {
-            createSiweNonce: (input) => request("/v1/auth/siwe/nonce", jsonInit("POST", input)),
-            verifySiwe: (input) => request("/v1/auth/siwe/verify", jsonInit("POST", input)),
-            whoami: (auth) => request("/v1/auth/whoami", undefined, auth),
+            createSiweNonce: (input) => request("/v0/auth/siwe/nonce", jsonInit("POST", input)),
+            verifySiwe: (input) => request("/v0/auth/siwe/verify", jsonInit("POST", input)),
+            whoami: (auth) => request("/v0/auth/whoami", undefined, auth),
             logout: async (auth) => {
-                await request("/v1/auth/logout", { method: "POST" }, auth);
+                await request("/v0/auth/logout", { method: "POST" }, auth);
             },
             logoutAll: async (auth) => {
-                await request("/v1/auth/logout-all", { method: "POST" }, auth);
+                await request("/v0/auth/logout-all", { method: "POST" }, auth);
             },
         },
     };

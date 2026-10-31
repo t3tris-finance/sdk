@@ -128,7 +128,7 @@ export interface UsageQuota {
   remaining: number | null;
 }
 
-/** The calling key's usage view (GET /v1/key/usage): the key's own counters
+/** The calling key's usage view (GET /v0/key/usage): the key's own counters
  * plus the org cycle they draw from. Both sides share the one cycle window a
  * paid quota reset restarts. */
 export interface UsageSummary {

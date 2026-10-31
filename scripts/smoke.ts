@@ -91,7 +91,7 @@ const client = createT3trisClient({
   },
 });
 await client.catalog.listChains();
-assert(urls[0] === "https://api.t3tris.finance/v1/chains", "default production origin");
+assert(urls[0] === "https://api.t3tris.finance/v0/chains", "default production origin");
 for (const ns of ["catalog", "billing", "vaults", "accounts", "events", "keys", "auth"]) {
   assert(typeof client[ns] === "object", \`client.\${ns} namespace\`);
 }

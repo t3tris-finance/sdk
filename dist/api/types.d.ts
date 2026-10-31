@@ -4,7 +4,7 @@ import type { Address, VaultRef } from "../entities/primitives.js";
 import type { StreamEvent } from "../entities/stream.js";
 import type { AccountActivityInput, AccountFavoritesInput, AccountPositionsInput, AccountVaultsInput, ActivityInput, AnnotationInput, CreateKeyInput, EventFilter, EventsInput, HistoryInput, KeyVaultsInput, KeyVaultsPageInput, ListAssetsInput, ListVaultsInput, Page, PageInput, SessionAuth, SetAccountFavoriteInput, SiweNonceInput, SiweVerifyInput, VaultMetadataInput } from "./inputs.js";
 /**
- * Key-authenticated `/v1` client, namespaced by resource. The bearer `sk_…`
+ * Key-authenticated `/v0` client, namespaced by resource. The bearer `sk_…`
  * key identifies the caller. Protected methods take a per-call `{ session }`
  * (`ss_…`) on the `x-t3tris-session` header beside the key — a session never
  * replaces the key, and there is no second client. Account reads take an

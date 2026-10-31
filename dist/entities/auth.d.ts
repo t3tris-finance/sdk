@@ -12,9 +12,9 @@ export interface Session {
     expiresAt: number;
 }
 /** Capabilities on an `sk_…` key. Sessions (`ss_…`) have no scopes.
- *  `public`  — catalog, vaults, poll `GET /v1/events`. Live USD quotes are
+ *  `public`  — catalog, vaults, poll `GET /v0/events`. Live USD quotes are
  *              `Asset.latestPriceUsd` on `catalog.listAssets`.
- *  `stream`  — live `GET /v1/stream` websocket (API keys only)
+ *  `stream`  — live `GET /v0/stream` websocket (API keys only)
  *  `manage`  — this key may attach/detach its own vaults
  *  `gov`     — not a customer scope; never customer-minted */
 export type ApiScope = "public" | "stream" | "manage" | "gov";
@@ -30,7 +30,7 @@ export interface ApiKey {
     lastUsedAt?: number;
     revokedAt?: number;
 }
-/** Issued by POST /v1/auth/* — an `ss_…` bearer token and the account behind
+/** Issued by POST /v0/auth/* — an `ss_…` bearer token and the account behind
  * it. Keep the token server-side; never ship it to a browser. */
 export interface AuthSession {
     token: string;

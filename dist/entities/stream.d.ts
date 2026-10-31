@@ -1,4 +1,4 @@
-/** A business event from the /v1/stream outbox feed. `seq` is strictly
+/** A business event from the /v0/stream outbox feed. `seq` is strictly
  * monotone per API deployment — consumers resume from the last seq seen. */
 export interface StreamEvent {
     seq: number;

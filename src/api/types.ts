@@ -42,7 +42,7 @@ import type {
 } from "./inputs";
 
 /**
- * Key-authenticated `/v1` client, namespaced by resource. The bearer `sk_…`
+ * Key-authenticated `/v0` client, namespaced by resource. The bearer `sk_…`
  * key identifies the caller. Protected methods take a per-call `{ session }`
  * (`ss_…`) on the `x-t3tris-session` header beside the key — a session never
  * replaces the key, and there is no second client. Account reads take an

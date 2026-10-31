@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0
+
+- Breaking: API requests and live subscriptions now use `/v0` instead of `/v1`.
+  Upgrade the API server and SDK consumers together; SDK 0.6.x targets the old routes.
+- API `/v0` and SDK `0.x` remain unstable. Breaking changes may occur before
+  the stable API `/v1` and SDK `1.0.0` release. Pin the SDK and review this
+  changelog before upgrading; pinning the package does not freeze the server.
+
 ## 0.6.0
 
 - Typed API client and explicit asynchronous vault actions through one client.

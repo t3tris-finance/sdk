@@ -68,7 +68,7 @@ function paramsTuple(p, oracle) {
         p.config.depositEnabled,
         p.config.depositWhitelistEnabled,
         p.config.withdrawWhitelistEnabled,
-        false, // SDK 0.6 creates asynchronous vaults regardless of extra runtime fields.
+        false, // The SDK creates asynchronous vaults regardless of extra runtime fields.
     ];
 }
 /** `deployVault(params, safeOracle, oracle, salt, referralCode)` calldata. */

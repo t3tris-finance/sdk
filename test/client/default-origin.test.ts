@@ -26,7 +26,7 @@ describe("production API default", () => {
     const client = createT3trisClient({ apiKey: "sk_test_default", fetch: fetchImpl });
     await client.catalog.listChains();
     expect(requests).toEqual([
-      { url: "https://api.t3tris.finance/v1/chains", authorization: "Bearer sk_test_default" },
+      { url: "https://api.t3tris.finance/v0/chains", authorization: "Bearer sk_test_default" },
     ]);
     expect(() => createT3trisClient()).not.toThrow();
   });
@@ -35,14 +35,14 @@ describe("production API default", () => {
     process.env.T3TRIS_API_URL = "https://unexpected.example";
     const { requests, fetchImpl } = transport();
     await createT3trisClient({ fetch: fetchImpl }).catalog.listChains();
-    expect(requests[0]?.url).toBe("https://unexpected.example/v1/chains");
+    expect(requests[0]?.url).toBe("https://unexpected.example/v0/chains");
   });
 
   test("an empty environment URL falls back to production", async () => {
     process.env.T3TRIS_API_URL = "";
     const { requests, fetchImpl } = transport();
     await createT3trisClient({ fetch: fetchImpl }).catalog.listChains();
-    expect(requests[0]?.url).toBe("https://api.t3tris.finance/v1/chains");
+    expect(requests[0]?.url).toBe("https://api.t3tris.finance/v0/chains");
   });
 
   test("explicit initialization takes precedence over the environment", async () => {
@@ -50,6 +50,6 @@ describe("production API default", () => {
     const { requests, fetchImpl } = transport();
     const client = createT3trisClient({ baseUrl: "http://127.0.0.1:42114/", fetch: fetchImpl });
     await client.catalog.listChains();
-    expect(requests[0]?.url).toBe("http://127.0.0.1:42114/v1/chains");
+    expect(requests[0]?.url).toBe("http://127.0.0.1:42114/v0/chains");
   });
 });

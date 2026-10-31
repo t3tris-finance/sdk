@@ -73,7 +73,7 @@ const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 
 const fetchMock: typeof fetch = (input, init) => {
   fetchCount += 1;
   const url = String(input);
-  if (!url.endsWith("/v1/stream/ticket")) {
+  if (!url.endsWith("/v0/stream/ticket")) {
     return Promise.reject(new Error(`unexpected ${url}`));
   }
   return new Promise((resolve, reject) => {

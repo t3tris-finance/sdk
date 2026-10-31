@@ -13,7 +13,7 @@ describe("API collection contracts", () => {
       },
     });
     expect(await client.keys.listVaults()).toEqual({ items: [ref], nextCursor: "opaque_next" });
-    expect(new URL(urls[0] ?? "").pathname).toBe("/v1/key/vaults");
+    expect(new URL(urls[0] ?? "").pathname).toBe("/v0/key/vaults");
     expect(new URL(urls[0] ?? "").search).toBe("");
   });
   test("empty and oversized explicit-reference lookups never perform IO", async () => {

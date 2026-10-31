@@ -151,7 +151,7 @@ function paramsTuple(p: Omit<DeployVaultArgs, "chainId">, oracle: Address): read
     p.config.depositEnabled,
     p.config.depositWhitelistEnabled,
     p.config.withdrawWhitelistEnabled,
-    false, // SDK 0.6 creates asynchronous vaults regardless of extra runtime fields.
+    false, // The SDK creates asynchronous vaults regardless of extra runtime fields.
   ];
 }
 

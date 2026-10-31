@@ -21,7 +21,7 @@ describe("catalog.listAssets", () => {
     });
 
     await client.catalog.listAssets({ limit: 10 });
-    expect(urls[0]).toBe("https://api.test/v1/assets?limit=10");
+    expect(urls[0]).toBe("https://api.test/v0/assets?limit=10");
     expect(urls[0]).not.toContain("chainId=");
     expect(urls[0]).not.toContain("chainId=%5Bobject%20Object%5D");
     expect(urls[0]).not.toContain("chainId=%5Bobject+Object%5D");

@@ -190,7 +190,7 @@ export interface EventFilter {
     /** Only receive these event types. */
     types?: string[];
 }
-/** Polled event outbox (`GET /v1/events`, `public` scope). */
+/** Polled event outbox (`GET /v0/events`, `public` scope). */
 export interface EventsInput extends PageInput {
     /** Exclusive resume checkpoint: only events with seq > after are returned.
      * Use the last event's seq (or a stream `onProgress` checkpoint) to resume. */

@@ -22,7 +22,7 @@ test("organization key operations forward targets, batches and creation without 
   await client.keys.attachVault({ keyId: "12", vaults: [ref, ref] });
   await client.keys.detachVault({ keyId: "12", vaults: [ref] });
   await client.keys.listVaults({ keyId: "12", limit: 2 });
-  expect(requests[0]?.url.pathname).toBe("/v1/key/keys");
+  expect(requests[0]?.url.pathname).toBe("/v0/key/keys");
   expect(requests[1]?.body).toEqual({ keyId: "12", vaults: [ref, ref] });
   expect(requests[2]?.method).toBe("DELETE");
   expect(requests[3]?.url.searchParams.get("keyId")).toBe("12");

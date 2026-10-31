@@ -48,7 +48,7 @@ const publishManifest = {
   version: manifest.version,
   description:
     manifest.description ??
-    "Typed client for the T3tris API (/v1) plus the on-chain action engine.",
+    "Typed client for the T3tris API (/v0) plus the on-chain action engine.",
   // Stay private until LICENSE exists and publishing is explicitly enabled.
   private: true,
   type: "module",

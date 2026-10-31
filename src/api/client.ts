@@ -324,7 +324,7 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
       if (ended) return;
       let ticket: string;
       try {
-        const minted = await request<{ ticket: string; expiresAt: number }>("/v1/stream/ticket", {
+        const minted = await request<{ ticket: string; expiresAt: number }>("/v0/stream/ticket", {
           method: "POST",
           signal: subscribeOptions.signal,
         });
@@ -349,7 +349,7 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
       if (filter.types !== undefined && filter.types.length > 0) {
         params.set("types", filter.types.join(","));
       }
-      const opened = new WebSocket(`${wsBase}/v1/stream?${params.toString()}`);
+      const opened = new WebSocket(`${wsBase}/v0/stream?${params.toString()}`);
       // Constructor can abort synchronously. close() already returned and
       // will not see this socket — close it here and do not attach handlers.
       if (ended) {
@@ -446,18 +446,18 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
 
   return {
     catalog: {
-      listChains: (input) => request<Page<Chain>>(`/v1/chains${q({ ...input })}`),
-      listAssets: (input) => request<Page<Asset>>(`/v1/assets${q({ ...input })}`),
+      listChains: (input) => request<Page<Chain>>(`/v0/chains${q({ ...input })}`),
+      listAssets: (input) => request<Page<Asset>>(`/v0/assets${q({ ...input })}`),
     },
     billing: {
-      getPricing: () => request<BillingPricing>("/v1/billing/pricing"),
-      getUsage: () => request<UsageSummary>("/v1/key/usage"),
+      getPricing: () => request<BillingPricing>("/v0/billing/pricing"),
+      getUsage: () => request<UsageSummary>("/v0/key/usage"),
     },
 
     vaults: {
       list: (input) =>
         request<Page<Vault>>(
-          `/v1/vaults${q({
+          `/v0/vaults${q({
             chainIds: input?.chainIds?.join(","),
             assetAddress: input?.assetAddress,
             curatorAddress: input?.curatorAddress,
@@ -470,51 +470,51 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
             cursor: input?.cursor,
           })}`,
         ),
-      get: (ref) => request<Vault>(`/${refPath("v1/vaults", ref)}`),
+      get: (ref) => request<Vault>(`/${refPath("v0/vaults", ref)}`),
       getMany: async (refs) => {
         if (refs.length > 100)
           throw new RangeError("vaults.getMany accepts at most 100 references.");
         if (refs.length === 0) return [];
         const page = await request<{ items: Vault[] }>(
-          `/v1/vaults/refs${q({ refs: refs.map((r) => `${r.chainId}:${r.address.toLowerCase()}`).join(",") })}`,
+          `/v0/vaults/refs${q({ refs: refs.map((r) => `${r.chainId}:${r.address.toLowerCase()}`).join(",") })}`,
         );
         return page.items;
       },
       listHistory: (ref, input) =>
         request<Page<VaultSnapshot>>(
-          `/${refPath("v1/vaults", ref)}/history${q({
+          `/${refPath("v0/vaults", ref)}/history${q({
             range: input?.range,
             limit: input?.limit,
             cursor: input?.cursor,
           })}`,
         ),
       getComposition: (ref) =>
-        request<VaultComposition | null>(`/${refPath("v1/vaults", ref)}/composition`),
+        request<VaultComposition | null>(`/${refPath("v0/vaults", ref)}/composition`),
       listActivity: (ref, input) =>
-        request<Page<ActivityEvent>>(`/${refPath("v1/vaults", ref)}/activity${q({ ...input })}`),
+        request<Page<ActivityEvent>>(`/${refPath("v0/vaults", ref)}/activity${q({ ...input })}`),
       listAnnotations: (ref, input) =>
         request<Page<VaultAnnotation>>(
-          `/${refPath("v1/vaults", ref)}/annotations${q({ limit: input?.limit, cursor: input?.cursor })}`,
+          `/${refPath("v0/vaults", ref)}/annotations${q({ limit: input?.limit, cursor: input?.cursor })}`,
         ),
-      getGovernance: (ref) => request<VaultGovernance>(`/${refPath("v1/vaults", ref)}/governance`),
+      getGovernance: (ref) => request<VaultGovernance>(`/${refPath("v0/vaults", ref)}/governance`),
 
       updateMetadata: (ref, input: VaultMetadataInput, auth: SessionAuth) =>
-        request<Vault>(`/${refPath("v1/vaults", ref)}/metadata`, jsonInit("PUT", input), auth),
+        request<Vault>(`/${refPath("v0/vaults", ref)}/metadata`, jsonInit("PUT", input), auth),
       createAnnotation: (ref, input: AnnotationInput, auth: SessionAuth) =>
         request<VaultAnnotation>(
-          `/${refPath("v1/vaults", ref)}/annotations`,
+          `/${refPath("v0/vaults", ref)}/annotations`,
           jsonInit("POST", input),
           auth,
         ),
       updateAnnotation: (ref, annotationId, input: AnnotationInput, auth: SessionAuth) =>
         request<VaultAnnotation>(
-          `/${refPath("v1/vaults", ref)}/annotations/${encodeURIComponent(annotationId)}`,
+          `/${refPath("v0/vaults", ref)}/annotations/${encodeURIComponent(annotationId)}`,
           jsonInit("PUT", input),
           auth,
         ),
       deleteAnnotation: async (ref, annotationId, auth: SessionAuth) => {
         await request<unknown>(
-          `/${refPath("v1/vaults", ref)}/annotations/${encodeURIComponent(annotationId)}`,
+          `/${refPath("v0/vaults", ref)}/annotations/${encodeURIComponent(annotationId)}`,
           { method: "DELETE" },
           auth,
         );
@@ -523,17 +523,17 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
 
     accounts: {
       portfolio: (input) =>
-        request<AccountPortfolio>(`/v1/accounts/${input.address.toLowerCase()}/portfolio`),
+        request<AccountPortfolio>(`/v0/accounts/${input.address.toLowerCase()}/portfolio`),
       listVaults: (input) =>
         request<Page<Vault>>(
-          `/v1/accounts/${input.address.toLowerCase()}/vaults${q({
+          `/v0/accounts/${input.address.toLowerCase()}/vaults${q({
             limit: input.limit,
             cursor: input.cursor,
           })}`,
         ),
       listPositions: (input) =>
         request<Page<Position>>(
-          `/v1/accounts/${input.address.toLowerCase()}/positions${q({
+          `/v0/accounts/${input.address.toLowerCase()}/positions${q({
             chainId: input.chainId,
             limit: input.limit,
             cursor: input.cursor,
@@ -541,7 +541,7 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
         ),
       listActivity: (input) =>
         request<Page<ActivityEvent>>(
-          `/v1/accounts/${input.address.toLowerCase()}/activity${q({
+          `/v0/accounts/${input.address.toLowerCase()}/activity${q({
             chainId: input.chainId,
             limit: input.limit,
             cursor: input.cursor,
@@ -549,10 +549,10 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
           })}`,
         ),
       listFavorites: (input) =>
-        request<AccountFavorites>(`/v1/accounts/${input.address.toLowerCase()}/favorites`),
+        request<AccountFavorites>(`/v0/accounts/${input.address.toLowerCase()}/favorites`),
       setFavorite: (input, auth: SessionAuth) =>
         request<AccountFavorites>(
-          `/v1/accounts/${input.address.toLowerCase()}/favorites`,
+          `/v0/accounts/${input.address.toLowerCase()}/favorites`,
           jsonInit("PUT", {
             chainId: input.chainId,
             vault: input.vault,
@@ -562,7 +562,7 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
         ),
       deleteFavorite: async (input, auth: SessionAuth) => {
         await request<unknown>(
-          `/v1/accounts/${input.address.toLowerCase()}/favorites/${input.chainId}/${input.vault.toLowerCase()}`,
+          `/v0/accounts/${input.address.toLowerCase()}/favorites/${input.chainId}/${input.vault.toLowerCase()}`,
           { method: "DELETE" },
           auth,
         );
@@ -572,7 +572,7 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
     events: {
       list: (input?: EventsInput) =>
         request<Page<StreamEvent>>(
-          `/v1/events${q({
+          `/v0/events${q({
             after: input?.after,
             types: input?.types?.join(","),
             limit: input?.limit,
@@ -583,31 +583,31 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
     },
 
     keys: {
-      create: (input) => request("/v1/key/keys", jsonInit("POST", input)),
-      attachVault: (input: KeyVaultsInput) => request("/v1/key/vaults", jsonInit("POST", input)),
-      detachVault: (input: KeyVaultsInput) => request("/v1/key/vaults", jsonInit("DELETE", input)),
+      create: (input) => request("/v0/key/keys", jsonInit("POST", input)),
+      attachVault: (input: KeyVaultsInput) => request("/v0/key/vaults", jsonInit("POST", input)),
+      detachVault: (input: KeyVaultsInput) => request("/v0/key/vaults", jsonInit("DELETE", input)),
       listVaults: (input) =>
         request<Page<Vault>>(
-          `/v1/key/vaults${q({ limit: input?.limit, cursor: input?.cursor, keyId: input?.keyId })}`,
+          `/v0/key/vaults${q({ limit: input?.limit, cursor: input?.cursor, keyId: input?.keyId })}`,
         ),
       hasVaults: (refs) => {
         if (refs.length > 100) throw new RangeError("hasVaults accepts at most 100 references");
         if (refs.length === 0) return Promise.resolve([]);
-        return request<boolean[]>("/v1/key/vaults/exists", jsonInit("POST", { refs }));
+        return request<boolean[]>("/v0/key/vaults/exists", jsonInit("POST", { refs }));
       },
     },
 
     auth: {
       createSiweNonce: (input: SiweNonceInput) =>
-        request<{ nonce: string; message: string }>("/v1/auth/siwe/nonce", jsonInit("POST", input)),
+        request<{ nonce: string; message: string }>("/v0/auth/siwe/nonce", jsonInit("POST", input)),
       verifySiwe: (input: SiweVerifyInput) =>
-        request<AuthSession>("/v1/auth/siwe/verify", jsonInit("POST", input)),
-      whoami: (auth: SessionAuth) => request<Whoami>("/v1/auth/whoami", undefined, auth),
+        request<AuthSession>("/v0/auth/siwe/verify", jsonInit("POST", input)),
+      whoami: (auth: SessionAuth) => request<Whoami>("/v0/auth/whoami", undefined, auth),
       logout: async (auth: SessionAuth) => {
-        await request<unknown>("/v1/auth/logout", { method: "POST" }, auth);
+        await request<unknown>("/v0/auth/logout", { method: "POST" }, auth);
       },
       logoutAll: async (auth: SessionAuth) => {
-        await request<unknown>("/v1/auth/logout-all", { method: "POST" }, auth);
+        await request<unknown>("/v0/auth/logout-all", { method: "POST" }, auth);
       },
     },
   };
