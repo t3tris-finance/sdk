@@ -466,8 +466,6 @@ export function createApiClient(options = {}) {
         auth: {
             createSiweNonce: (input) => request("/v1/auth/siwe/nonce", jsonInit("POST", input)),
             verifySiwe: (input) => request("/v1/auth/siwe/verify", jsonInit("POST", input)),
-            registerEmail: (input) => request("/v1/auth/email/register", jsonInit("POST", input)),
-            loginEmail: (input) => request("/v1/auth/email/login", jsonInit("POST", input)),
             whoami: (auth) => request("/v1/auth/whoami", undefined, auth),
             logout: async (auth) => {
                 await request("/v1/auth/logout", { method: "POST" }, auth);

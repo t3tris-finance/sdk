@@ -19,7 +19,6 @@ import type { AssetRef, VaultRef } from "../entities/primitives";
 import type { StreamEvent } from "../entities/stream";
 import {
   type AnnotationInput,
-  type EmailRegisterInput,
   type EventFilter,
   type EventsInput,
   type KeyVaultsInput,
@@ -603,10 +602,6 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
         request<{ nonce: string; message: string }>("/v1/auth/siwe/nonce", jsonInit("POST", input)),
       verifySiwe: (input: SiweVerifyInput) =>
         request<AuthSession>("/v1/auth/siwe/verify", jsonInit("POST", input)),
-      registerEmail: (input: EmailRegisterInput) =>
-        request<AuthSession>("/v1/auth/email/register", jsonInit("POST", input)),
-      loginEmail: (input: EmailRegisterInput) =>
-        request<AuthSession>("/v1/auth/email/login", jsonInit("POST", input)),
       whoami: (auth: SessionAuth) => request<Whoami>("/v1/auth/whoami", undefined, auth),
       logout: async (auth: SessionAuth) => {
         await request<unknown>("/v1/auth/logout", { method: "POST" }, auth);

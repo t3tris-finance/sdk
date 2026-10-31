@@ -11,7 +11,6 @@ export type {
   CreateKeyInput,
   CreateOrgInput,
   CreateOrgKeyInput,
-  EmailRegisterInput,
   EventFilter,
   EventsInput,
   HistoryInput,

@@ -2,7 +2,7 @@ import type { AccountFavorites, AccountPortfolio, ActivityEvent, Asset, AuthSess
 import type { BillingPricing, UsageSummary } from "../entities/org.js";
 import type { Address, VaultRef } from "../entities/primitives.js";
 import type { StreamEvent } from "../entities/stream.js";
-import type { AccountActivityInput, AccountFavoritesInput, AccountPositionsInput, AccountVaultsInput, ActivityInput, AnnotationInput, CreateKeyInput, EmailRegisterInput, EventFilter, EventsInput, HistoryInput, KeyVaultsInput, KeyVaultsPageInput, ListAssetsInput, ListVaultsInput, Page, PageInput, SessionAuth, SetAccountFavoriteInput, SiweNonceInput, SiweVerifyInput, VaultMetadataInput } from "./inputs.js";
+import type { AccountActivityInput, AccountFavoritesInput, AccountPositionsInput, AccountVaultsInput, ActivityInput, AnnotationInput, CreateKeyInput, EventFilter, EventsInput, HistoryInput, KeyVaultsInput, KeyVaultsPageInput, ListAssetsInput, ListVaultsInput, Page, PageInput, SessionAuth, SetAccountFavoriteInput, SiweNonceInput, SiweVerifyInput, VaultMetadataInput } from "./inputs.js";
 /**
  * Key-authenticated `/v1` client, namespaced by resource. The bearer `sk_…`
  * key identifies the caller. Protected methods take a per-call `{ session }`
@@ -103,8 +103,6 @@ export interface T3trisClient {
             message: string;
         }>;
         verifySiwe(input: SiweVerifyInput): Promise<AuthSession>;
-        registerEmail(input: EmailRegisterInput): Promise<AuthSession>;
-        loginEmail(input: EmailRegisterInput): Promise<AuthSession>;
         /** The session's account + org memberships. Session required. */
         whoami(auth: SessionAuth): Promise<Whoami>;
         /** Revoke the presenting session (logout). */

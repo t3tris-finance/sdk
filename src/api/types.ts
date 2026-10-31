@@ -25,7 +25,6 @@ import type {
   ActivityInput,
   AnnotationInput,
   CreateKeyInput,
-  EmailRegisterInput,
   EventFilter,
   EventsInput,
   HistoryInput,
@@ -164,13 +163,10 @@ export interface T3trisClient {
     hasVaults(refs: VaultRef[]): Promise<boolean[]>;
   };
 
-  // — auth (SIWE proves wallet control — read-only wallets never get a
-  //    session; email accounts skip the wallet entirely) —
+  // — auth (SIWE proves wallet control; read-only wallets cannot sign in) —
   auth: {
     createSiweNonce(input: SiweNonceInput): Promise<{ nonce: string; message: string }>;
     verifySiwe(input: SiweVerifyInput): Promise<AuthSession>;
-    registerEmail(input: EmailRegisterInput): Promise<AuthSession>;
-    loginEmail(input: EmailRegisterInput): Promise<AuthSession>;
     /** The session's account + org memberships. Session required. */
     whoami(auth: SessionAuth): Promise<Whoami>;
     /** Revoke the presenting session (logout). */

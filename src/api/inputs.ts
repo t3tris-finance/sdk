@@ -207,11 +207,6 @@ export interface SiweVerifyInput {
   signature: `0x${string}`;
 }
 
-export interface EmailRegisterInput {
-  email: string;
-  password: string;
-}
-
 /** Live-stream subscription filter — the token is always the client's own
  * `sk_…` key (`stream` scope); sessions cannot open the stream. */
 export interface EventFilter {
