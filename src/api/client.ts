@@ -14,16 +14,15 @@ import type {
   Whoami,
 } from "../entities";
 
-import type { ApiKeyMasked, BillingPricing, UsageSummary } from "../entities/org";
+import type { BillingPricing, UsageSummary } from "../entities/org";
 import type { AssetRef, VaultRef } from "../entities/primitives";
 import type { StreamEvent } from "../entities/stream";
 import {
   type AnnotationInput,
-  type AttachVaultInput,
   type EmailRegisterInput,
   type EventFilter,
   type EventsInput,
-  type LookupVaultsInput,
+  type KeyVaultsInput,
   type Page,
   type RequestOptions,
   SESSION_HEADER,
@@ -585,17 +584,17 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
     },
 
     keys: {
-      attachVault: (input: AttachVaultInput) =>
-        request<ApiKeyMasked>("/v1/key/vaults", jsonInit("POST", input)),
-      detachVault: (input: AttachVaultInput) =>
-        request<ApiKeyMasked>("/v1/key/vaults", jsonInit("DELETE", input)),
+      create: (input) => request("/v1/key/subkeys", jsonInit("POST", input)),
+      attachVault: (input: KeyVaultsInput) => request("/v1/key/vaults", jsonInit("POST", input)),
+      detachVault: (input: KeyVaultsInput) => request("/v1/key/vaults", jsonInit("DELETE", input)),
       listVaults: (input) =>
-        request<Page<Vault>>(`/v1/key/vaults${q({ limit: input?.limit, cursor: input?.cursor })}`),
-      lookupVaults: async (input: LookupVaultsInput) => {
-        const page = await request<{ items: Vault[] }>(
-          `/v1/vaults/lookup${q({ address: input.address, chainId: input.chainId })}`,
-        );
-        return page.items;
+        request<Page<Vault>>(
+          `/v1/key/vaults${q({ limit: input?.limit, cursor: input?.cursor, keyId: input?.keyId })}`,
+        ),
+      hasVaults: (refs) => {
+        if (refs.length > 100) throw new RangeError("hasVaults accepts at most 100 references");
+        if (refs.length === 0) return Promise.resolve([]);
+        return request<boolean[]>("/v1/key/vaults/exists", jsonInit("POST", { refs }));
       },
     },
 

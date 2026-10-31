@@ -92,12 +92,20 @@ export interface AttachVaultInput {
     address: Address;
     chainId?: number;
 }
-/** Read vaults matching an address (`GET /v1/vaults/lookup`). Does not attach
- * or detach. `chainId` is required only when the address exists on more than
- * one chain. */
-export interface LookupVaultsInput {
-    address: Address;
-    chainId?: number;
+/** Atomic attachment mutation. Omit keyId to target the calling key.
+ * An explicit target must be a direct sub-key of the calling manage key. */
+export interface KeyVaultsInput {
+    keyId?: string;
+    vaults: VaultRef[];
+}
+export interface CreateSubKeyInput {
+    name: string;
+    /** Defaults to public + stream. Must be a subset of the parent scopes. */
+    scopes?: ("public" | "stream")[];
+    monthlyQuota?: number;
+}
+export interface KeyVaultsPageInput extends PageInput {
+    keyId?: string;
 }
 /** On-chain settlement of the org's quoted terms (Starter or a custom offer). */
 export interface PayOrgSubscriptionInput {

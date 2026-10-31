@@ -14,7 +14,7 @@ import type {
   Whoami,
 } from "../entities";
 
-import type { ApiKeyMasked, BillingPricing, UsageSummary } from "../entities/org";
+import type { BillingPricing, UsageSummary } from "../entities/org";
 import type { Address, VaultRef } from "../entities/primitives";
 import type { StreamEvent } from "../entities/stream";
 import type {
@@ -24,14 +24,15 @@ import type {
   AccountVaultsInput,
   ActivityInput,
   AnnotationInput,
-  AttachVaultInput,
+  CreateSubKeyInput,
   EmailRegisterInput,
   EventFilter,
   EventsInput,
   HistoryInput,
+  KeyVaultsInput,
+  KeyVaultsPageInput,
   ListAssetsInput,
   ListVaultsInput,
-  LookupVaultsInput,
   Page,
   PageInput,
   SessionAuth,
@@ -147,18 +148,19 @@ export interface T3trisClient {
     ): AsyncIterableIterator<StreamEvent>;
   };
 
-  // — key self-service (the API-key holder manages its own attachments) —
+  // — key self-service and direct sub-key delegation —
   keys: {
-    /** This key (`manage` scope): attach a vault to itself. Returns the key. */
-    attachVault(input: AttachVaultInput): Promise<ApiKeyMasked>;
-    /** This key (`manage` scope): detach a vault from itself. Returns the key. */
-    detachVault(input: AttachVaultInput): Promise<ApiKeyMasked>;
+    /** Create a public/stream-only direct sub-key. Secret is returned once. */
+    create(input: CreateSubKeyInput): Promise<import("../entities/org").SubKeyCreated>;
+    /** Atomic, idempotent batch (1–100 refs), calling key or its direct sub-key. */
+    attachVault(input: KeyVaultsInput): Promise<import("../entities/org").KeyVaultsResult>;
+    detachVault(input: KeyVaultsInput): Promise<import("../entities/org").KeyVaultsResult>;
     /** Paginated attached vaults, ordered by chain ID then address. Requires public
      * scope. Pass nextCursor as cursor to continue. Default 50, maximum 200. */
-    listVaults(input?: PageInput): Promise<Page<Vault>>;
-    /** Read vaults matching an address (optional chainId). Does not attach or
-     * detach. `public` scope. Bounded array — no cursor. */
-    lookupVaults(input: LookupVaultsInput): Promise<Vault[]>;
+    listVaults(input?: KeyVaultsPageInput): Promise<Page<Vault>>;
+    /** Indexed, non-governance-hidden existence (not attachment membership).
+     * 0–100 refs; booleans preserve input order and duplicates. */
+    hasVaults(refs: VaultRef[]): Promise<boolean[]>;
   };
 
   // — auth (SIWE proves wallet control — read-only wallets never get a

@@ -451,12 +451,16 @@ export function createApiClient(options = {}) {
             subscribe,
         },
         keys: {
+            create: (input) => request("/v1/key/subkeys", jsonInit("POST", input)),
             attachVault: (input) => request("/v1/key/vaults", jsonInit("POST", input)),
             detachVault: (input) => request("/v1/key/vaults", jsonInit("DELETE", input)),
-            listVaults: (input) => request(`/v1/key/vaults${q({ limit: input?.limit, cursor: input?.cursor })}`),
-            lookupVaults: async (input) => {
-                const page = await request(`/v1/vaults/lookup${q({ address: input.address, chainId: input.chainId })}`);
-                return page.items;
+            listVaults: (input) => request(`/v1/key/vaults${q({ limit: input?.limit, cursor: input?.cursor, keyId: input?.keyId })}`),
+            hasVaults: (refs) => {
+                if (refs.length > 100)
+                    throw new RangeError("hasVaults accepts at most 100 references");
+                if (refs.length === 0)
+                    return Promise.resolve([]);
+                return request("/v1/key/vaults/exists", jsonInit("POST", { refs }));
             },
         },
         auth: {

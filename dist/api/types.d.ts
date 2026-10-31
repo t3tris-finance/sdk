@@ -1,8 +1,8 @@
 import type { AccountFavorites, AccountPortfolio, ActivityEvent, Asset, AuthSession, Chain, Position, Vault, VaultAnnotation, VaultComposition, VaultGovernance, VaultSnapshot, Whoami } from "../entities/index.js";
-import type { ApiKeyMasked, BillingPricing, UsageSummary } from "../entities/org.js";
+import type { BillingPricing, UsageSummary } from "../entities/org.js";
 import type { Address, VaultRef } from "../entities/primitives.js";
 import type { StreamEvent } from "../entities/stream.js";
-import type { AccountActivityInput, AccountFavoritesInput, AccountPositionsInput, AccountVaultsInput, ActivityInput, AnnotationInput, AttachVaultInput, EmailRegisterInput, EventFilter, EventsInput, HistoryInput, ListAssetsInput, ListVaultsInput, LookupVaultsInput, Page, PageInput, SessionAuth, SetAccountFavoriteInput, SiweNonceInput, SiweVerifyInput, VaultMetadataInput } from "./inputs.js";
+import type { AccountActivityInput, AccountFavoritesInput, AccountPositionsInput, AccountVaultsInput, ActivityInput, AnnotationInput, CreateSubKeyInput, EmailRegisterInput, EventFilter, EventsInput, HistoryInput, KeyVaultsInput, KeyVaultsPageInput, ListAssetsInput, ListVaultsInput, Page, PageInput, SessionAuth, SetAccountFavoriteInput, SiweNonceInput, SiweVerifyInput, VaultMetadataInput } from "./inputs.js";
 /**
  * Key-authenticated `/v1` client, namespaced by resource. The bearer `sk_…`
  * key identifies the caller. Protected methods take a per-call `{ session }`
@@ -84,16 +84,17 @@ export interface T3trisClient {
         }): AsyncIterableIterator<StreamEvent>;
     };
     keys: {
-        /** This key (`manage` scope): attach a vault to itself. Returns the key. */
-        attachVault(input: AttachVaultInput): Promise<ApiKeyMasked>;
-        /** This key (`manage` scope): detach a vault from itself. Returns the key. */
-        detachVault(input: AttachVaultInput): Promise<ApiKeyMasked>;
+        /** Create a public/stream-only direct sub-key. Secret is returned once. */
+        create(input: CreateSubKeyInput): Promise<import("../entities/org.js").SubKeyCreated>;
+        /** Atomic, idempotent batch (1–100 refs), calling key or its direct sub-key. */
+        attachVault(input: KeyVaultsInput): Promise<import("../entities/org.js").KeyVaultsResult>;
+        detachVault(input: KeyVaultsInput): Promise<import("../entities/org.js").KeyVaultsResult>;
         /** Paginated attached vaults, ordered by chain ID then address. Requires public
          * scope. Pass nextCursor as cursor to continue. Default 50, maximum 200. */
-        listVaults(input?: PageInput): Promise<Page<Vault>>;
-        /** Read vaults matching an address (optional chainId). Does not attach or
-         * detach. `public` scope. Bounded array — no cursor. */
-        lookupVaults(input: LookupVaultsInput): Promise<Vault[]>;
+        listVaults(input?: KeyVaultsPageInput): Promise<Page<Vault>>;
+        /** Indexed, non-governance-hidden existence (not attachment membership).
+         * 0–100 refs; booleans preserve input order and duplicates. */
+        hasVaults(refs: VaultRef[]): Promise<boolean[]>;
     };
     auth: {
         createSiweNonce(input: SiweNonceInput): Promise<{

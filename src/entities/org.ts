@@ -43,8 +43,25 @@ export type AddOrgMemberResult =
 
 /** An api key as listings see it — the token hash is never derivable from
  * this; the full token exists only in the createOrgKey response, once. */
+export interface SubKeyCreated {
+  id: string;
+  parentKeyId: string;
+  name: string;
+  scopes: ("public" | "stream")[];
+  monthlyQuota?: number;
+  /** Returned exactly once; store securely on your backend. */
+  secret: string;
+}
+
+export interface KeyVaultsResult {
+  keyId: string;
+  /** Normalized references processed atomically; duplicates removed. */
+  vaults: VaultRef[];
+}
+
 export interface ApiKeyMasked {
   id: string;
+  parentKeyId?: string;
   name: string;
   tokenPrefix: string; // e.g. "sk_live_a1b2" — env tag + first 4 random hex
   scopes: ApiScope[];
