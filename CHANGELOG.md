@@ -7,6 +7,21 @@ release before removal.
 
 ## 0.6.0
 
+- Simplified `vaults.create`: top-level `name`, `symbol`, `asset`, `owner`,
+  `curator`, `feeRecipient`; grouped `config`, `deployment` and `fees`.
+  Choose `oracle: { safe: true, owner, maxDeviationUp?, maxDeviationDown? }`
+  or `oracle: { address }`. Duplicate oracle fields and zero-address clone
+  sentinels are removed from the public input.
+- `config.ipfsHash` is optional and defaults to the empty string. Creation
+  examples match Curate's flags: transfers/deposit requests enabled, whitelist
+  restrictions disabled, and always asynchronous. Examples explain WAD units,
+  optional deviation bounds and bytes32 referral codes.
+- SafeOracle bounds default independently to Curate's existing limits:
+  `2^128 − 1` upward and `10^18` downward. Fees and bounds stay bigint WAD;
+  `managementDays` stays integer days. `defaultSafeOracle` returns the new
+  safe-oracle shape. Use `VaultConfig`, `VaultFees`, `VaultOracleConfig` instead
+  of contract-shaped creation helper types.
+
 - Async-only vault flows: remove `deposit`, `redeem`, `open` and synchronous
   cap/quote reads (`maxDeposit`, `maxRedeem`, `previewDeposit`, `previewRedeem`,
   `previewOpen`). Use request → settlement → claim flows instead.

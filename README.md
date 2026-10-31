@@ -25,7 +25,7 @@ discovery are available from `@t3tris/sdk/onchain`:
 
 ```ts
 import { createT3trisClient } from "@t3tris/sdk";
-import { VAULT_SETTLE_ROLE, factoryOracleClone } from "@t3tris/sdk/onchain";
+import { VAULT_SETTLE_ROLE, defaultSafeOracle } from "@t3tris/sdk/onchain";
 ```
 
 ## Read vault data
@@ -169,23 +169,52 @@ transactions. Amounts use the underlying token's decimals.
 ```ts
 const result = await client.vaults.create({
   chainId,
-  salt,
-  params,
-  safeOracle,
-  oracle,
+  name: "My Vault",
+  symbol: "mvUSDC",
+  asset,
+  owner,
+  curator,
+  feeRecipient,
+  config: {
+    ipfsHash: "", // Optional metadata hash; defaults to "".
+    transferEnabled: true, // Allow share transfers.
+    depositEnabled: true, // Allow async deposit requests; vault still starts closed.
+    depositWhitelistEnabled: false, // No deposit whitelist restriction.
+    withdrawWhitelistEnabled: false, // No withdrawal whitelist restriction.
+  },
+  oracle: {
+    safe: true, // Create a new SafeOracle.
+    owner, // Address that administers the oracle.
+    maxDeviationUp: (1n << 128n) - 1n, // Optional WAD bound; default is effectively unbounded.
+    maxDeviationDown: 10n ** 18n, // Optional WAD bound; default allows a 100% decrease.
+  },
+  deployment: {
+    salt, // Unique bytes32 salt for this deployer.
+    referralCode, // Optional bytes32; omit when there is no referral.
+  },
+  fees: {
+    entry: 0n, // WAD: 10^16 = 1%; 0 = no entry fee.
+    exit: 0n, // WAD: 10^16 = 1%; 0 = no exit fee.
+    performance: 0n, // WAD: 10^16 = 1%; 0 = no performance fee.
+    management: 0n, // WAD rate accrued over managementDays; 0 = no fee.
+    managementDays: 365, // Management-fee accrual period in whole days.
+  },
 });
 ```
 
-Creation and prediction use the canonical factory
-`0x0000000000CC53b5Fd649b80f08b05405779cC71` on supported chains; there is no
-factory input. Every deployment starts in async mode: `vaultOpened` is not
-exposed and is always encoded as false. Direct synchronous deposit/redemption
-and switching to synchronous mode are not SDK capabilities.
+For an existing oracle, use `oracle: { address: oracleAddress }` instead. The two
+variants are mutually exclusive. SafeOracle deviation bounds `maxDeviationUp`
+and `maxDeviationDown` are optional bigint WAD values. They default independently
+to `2^128 − 1` (unbounded upward) and `10^18` (100% downward), matching Curate.
+Set explicit bounds for your risk policy. The SafeOracle owner is required.
+Fee rates are bigint WAD (`10^16` = 1%); `managementDays` is integer days.
 
-`params` is a `VaultDeployParams` object containing the asset, owner, curator, fees,
-metadata and lifecycle flags. Use a unique bytes32 `salt` for each deployment.
-Provide an existing oracle address, or `factoryOracleClone` to create a SafeOracle
-with your chosen owner and deviation bounds.
+Creation and prediction use the canonical factory
+`0x0000000000CC53b5Fd649b80f08b05405779cC71` on supported chains. No factory input
+is required. Every deployment starts async; `vaultOpened` is not exposed and is
+always encoded false. `deployment.salt` is required bytes32; optional bytes32
+`deployment.referralCode` attributes the deployment to a referral and defaults to
+zero when omitted.
 
 Predict the address with
 `client.vaults.read.previewAddress({ chainId, deployer, salt })`.
