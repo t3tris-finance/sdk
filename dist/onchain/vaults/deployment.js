@@ -57,7 +57,7 @@ function paramsTuple(p, oracle) {
     return [
         p.name,
         p.symbol,
-        p.config.ipfsHash,
+        p.config.ipfsHash ?? "",
         [p.fees.entry, p.fees.exit, p.fees.management, p.fees.performance, p.fees.managementDays],
         p.asset,
         oracle,

@@ -132,6 +132,13 @@ describe("deployment payload", () => {
       decode({ ...args, oracle: { safe: true, owner: OWNER, maxDeviationDown: 8n } })[1],
     ).toEqual([OWNER, SAFE_ORACLE_DEVIATION_UP, 8n]);
   });
+  test("omitting ipfsHash encodes an empty metadata hash", () => {
+    const { ipfsHash: _ipfsHash, ...config } = args.config;
+    expect(decode({ ...args, config })[0][2]).toBe("");
+    expect(encodeDeployVault({ ...args, config })).toBe(
+      encodeDeployVault({ ...args, config: { ...config, ipfsHash: "" } }),
+    );
+  });
   test("SafeOracle helper preserves current defaults with the new shape", () => {
     expect(defaultSafeOracle(OWNER)).toEqual({
       safe: true,

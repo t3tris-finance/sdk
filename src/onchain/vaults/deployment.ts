@@ -72,27 +72,37 @@ const SAFE_ORACLE: AbiParameter = {
 };
 
 export interface VaultFees {
-  /** Fee rates are bigint WAD: 10^16 = 1%. */
+  /** Entry fee in bigint WAD: 10^16 = 1%, 0 = no fee. */
   entry: bigint;
+  /** Exit fee in bigint WAD: 10^16 = 1%. */
   exit: bigint;
+  /** Performance fee in bigint WAD: 10^16 = 1%. */
   performance: bigint;
+  /** Management fee in bigint WAD, applied over managementDays. */
   management: bigint;
+  /** Management-fee accrual period, in whole days (Curate starts at 365). */
   managementDays: number;
 }
 
 export interface VaultConfig {
-  ipfsHash: string;
+  /** Optional metadata content hash; defaults to the empty string. */
+  ipfsHash?: string;
+  /** Allow share transfers. */
   transferEnabled: boolean;
+  /** Allow asynchronous deposit requests; does not enable sync mode. */
   depositEnabled: boolean;
+  /** Restrict deposits to the deposit whitelist when true. */
   depositWhitelistEnabled: boolean;
+  /** Restrict withdrawals to the withdrawal whitelist when true. */
   withdrawWhitelistEnabled: boolean;
 }
 
 export interface SafeOracleConfig {
   safe: true;
   owner: Address;
-  /** Deviation bounds are bigint WAD: 10^16 = 1%. */
+  /** Optional upward WAD bound (10^16 = 1%); defaults to 2^128 − 1. */
   maxDeviationUp?: bigint;
+  /** Optional downward WAD bound; defaults to 10^18 (100%). */
   maxDeviationDown?: bigint;
   address?: never;
 }
@@ -117,7 +127,12 @@ export interface DeployVaultArgs {
   feeRecipient: Address;
   config: VaultConfig;
   oracle: VaultOracleConfig;
-  deployment: { salt: Hex; referralCode?: Hex };
+  deployment: {
+    /** Unique bytes32 salt used with the deploying account for address prediction. */
+    salt: Hex;
+    /** Optional bytes32 referral identifier; defaults to zero. */
+    referralCode?: Hex;
+  };
   fees: VaultFees;
 }
 
@@ -125,7 +140,7 @@ function paramsTuple(p: Omit<DeployVaultArgs, "chainId">, oracle: Address): read
   return [
     p.name,
     p.symbol,
-    p.config.ipfsHash,
+    p.config.ipfsHash ?? "",
     [p.fees.entry, p.fees.exit, p.fees.management, p.fees.performance, p.fees.managementDays],
     p.asset,
     oracle,
