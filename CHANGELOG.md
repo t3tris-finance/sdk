@@ -7,6 +7,11 @@ release before removal.
 
 ## 0.6.0
 
+- Vault contract targets now use `{ chainId, address }`, matching API `VaultRef`.
+  Rename the `vault` input field to `address` in `vaults` actions/reads and vault
+  `roles` methods. Other inputs (`receiver`, `owner`, `token`, `oracle`, `factory`)
+  keep their meaning and names.
+
 - `keys.create({ name, scopes?, monthlyQuota? })` creates an independent API key
   in the same organization using `manage` scope. Returns `{ id, secret }` once.
 - `keys.attachVault` / `keys.detachVault` now take `{ keyId?, vaults: VaultRef[] }`:

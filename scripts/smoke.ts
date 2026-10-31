@@ -150,6 +150,13 @@ const preview: Promise<import("@t3tris/sdk").SettlePreview> = connected.vaults.r
 connected.vaults.settle({chainId: 42161, address: "0x0000000000000000000000000000000000000001", kind: "both", fullClaim: true});
 // @ts-expect-error feeClaimType is not a redemption option
 connected.vaults.settle({chainId: 42161, address: "0x0000000000000000000000000000000000000001", kind: "redemptions", feeClaimType: 0});
+declare const sharedRef: import("@t3tris/sdk").VaultRef;
+connected.vaults.read.isOpen(sharedRef);
+declare const rawAmount: bigint;
+connected.vaults.deposit({ ...sharedRef, amount: rawAmount });
+connected.roles.read.defaultAdminRole(sharedRef);
+// @ts-expect-error vault targets use address, not vault
+connected.vaults.read.isOpen({ chainId: 42161, vault: sharedRef.address });
 void [attached, preview];
 const address: Address = "0x0000000000000000000000000000000000000001";
 const event: StreamEvent | null = null;

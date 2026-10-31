@@ -113,7 +113,7 @@ const client = createT3trisClient({ walletClient, publicClient });
 
 const result = await client.vaults.setNextEntryFee({
   chainId: 42161,
-  vault,
+  address: vault,
   wad: 10n ** 16n, // 1%, queued according to the vault's fee rules
 });
 ```
@@ -141,7 +141,7 @@ if (result.status === "submitted") {
 ### Preview settlement
 
 ```ts
-const preview = await client.vaults.read.previewSettleAll({ chainId, vault });
+const preview = await client.vaults.read.previewSettleAll({ chainId, address: vault });
 const requiredCuratorAssets = preview.assetsFromCurator;
 const managementFeeAssets = preview.lastPeriodData.managementFeeAssets;
 ```
@@ -154,14 +154,14 @@ confirmation before a separate `vaults.settle` call.
 ```ts
 const result = await client.vaults.requestDeposit({
   chainId,
-  vault,
+  address: vault,
   amount: 1_000_000n,
   controller: account,
 });
 ```
 
 Approve funding first, then confirm request execution. Settlement and
-`vaults.claimDeposit({ chainId, vault, receiver: account })` are later, separate
+`vaults.claimDeposit({ chainId, address: vault, receiver: account })` are later, separate
 transactions. Amounts use the underlying token's decimals.
 
 ### Create a vault
