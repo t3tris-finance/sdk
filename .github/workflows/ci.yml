@@ -1,0 +1,49 @@
+name: CI
+
+# Lint, typecheck, test, and pack the publishable tarball. This workflow
+# never publishes.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint / typecheck / test / pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.0"
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Verify committed distribution
+        run: |
+          bun run build
+          git diff --exit-code -- dist
+          test -z "$(git ls-files --others --exclude-standard dist)"
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Test
+        run: bun run test
+
+      - name: Smoke (pack and install the tarball)
+        run: bun run smoke

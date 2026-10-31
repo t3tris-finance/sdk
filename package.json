@@ -1,0 +1,62 @@
+{
+  "name": "@t3tris/sdk",
+  "version": "0.6.0",
+  "description": "Typed T3tris API and explicit on-chain actions through one client.",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./onchain": {
+      "types": "./dist/onchain/index.d.ts",
+      "default": "./dist/onchain/index.js"
+    },
+    "./curate": {
+      "types": "./dist/compat/curate.d.ts",
+      "default": "./dist/compat/curate.js"
+    },
+    "./entities": {
+      "types": "./dist/entities/index.d.ts",
+      "default": "./dist/entities/index.js"
+    },
+    "./wallet": {
+      "types": "./dist/compat/wallet.d.ts",
+      "default": "./dist/compat/wallet.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "bun@1.4.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t3tris-finance/sdk.git"
+  },
+  "homepage": "https://github.com/t3tris-finance/sdk#readme",
+  "bugs": {
+    "url": "https://github.com/t3tris-finance/sdk/issues"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "build": "bun scripts/build.ts",
+    "pack": "bun scripts/pack.ts",
+    "smoke": "bun scripts/smoke.ts",
+    "test": "bun test test"
+  },
+  "dependencies": {
+    "viem": "^2.56.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.12",
+    "@types/bun": "1.4.1",
+    "typescript": "5.9.3"
+  }
+}
