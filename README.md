@@ -6,11 +6,13 @@ Use API credentials on your backend or connect an existing wallet to submit tran
 ## Installation
 
 ```sh
-bun add git+https://github.com/t3tris-finance/sdk.git
+bun add git+https://github.com/t3tris-finance/sdk.git#v0.5.0
 ```
 
 The package includes ESM JavaScript and TypeScript declarations. Commit your lockfile
-to keep installations reproducible.
+to keep installations reproducible. Select an explicit release tag (`v0.5.0`,
+`v0.4.0`) instead of tracking `main`. Release tags are fixed; fixes ship under a
+new version rather than moving an existing tag.
 
 ## Client configuration
 
