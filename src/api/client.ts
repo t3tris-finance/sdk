@@ -584,7 +584,7 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
     },
 
     keys: {
-      create: (input) => request("/v1/key/subkeys", jsonInit("POST", input)),
+      create: (input) => request("/v1/key/keys", jsonInit("POST", input)),
       attachVault: (input: KeyVaultsInput) => request("/v1/key/vaults", jsonInit("POST", input)),
       detachVault: (input: KeyVaultsInput) => request("/v1/key/vaults", jsonInit("DELETE", input)),
       listVaults: (input) =>

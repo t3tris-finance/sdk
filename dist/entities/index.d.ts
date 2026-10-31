@@ -10,7 +10,7 @@ export type { Asset } from "./asset.js";
 export type { Account, ApiKey, ApiScope, AuthSession, Session, Whoami, WhoamiOrg, } from "./auth.js";
 export type { Chain } from "./chain.js";
 export type { Holding, RiskRating, VaultComposition } from "./market.js";
-export type { AccountFavorite, AccountFavorites, AddOrgMemberResult, ApiKeyMasked, BillingPricing, CreditLedgerEntry, ExtraUsage, Membership, Organization, OrgInvite, OrgKeyCreated, OrgMember, OrgRole, OrgUsage, OrgUsageDay, OrgUsageEndpoint, OrgUsageHour, OrgUsageKeyTotal, Payment, PaymentKind, PaymentStatus, Subscription, SubscriptionPlan, SubscriptionStatus, UsageQuota, UsageSummary, } from "./org.js";
+export type { AccountFavorite, AccountFavorites, AddOrgMemberResult, ApiKeyMasked, BillingPricing, CreditLedgerEntry, ExtraUsage, KeyCreated, KeyVaultsResult, Membership, Organization, OrgInvite, OrgKeyCreated, OrgMember, OrgRole, OrgUsage, OrgUsageDay, OrgUsageEndpoint, OrgUsageHour, OrgUsageKeyTotal, Payment, PaymentKind, PaymentStatus, Subscription, SubscriptionPlan, SubscriptionStatus, UsageQuota, UsageSummary, } from "./org.js";
 export { apiKeyHint, CREDIT_PURCHASE_MAX_CENTS, CREDIT_PURCHASE_MIN_CENTS, LIMIT_CEILINGS, usdcUnitsFromCents, } from "./org.js";
 export type { PerformanceRange, PerformanceSnapshot } from "./performance.js";
 export { canonicalPerformanceHistory, chartApyPoints, latestChartApy, valuationNavs, weightedApyUpTo, } from "./performance.js";

@@ -2,7 +2,7 @@ import type { AccountFavorites, AccountPortfolio, ActivityEvent, Asset, AuthSess
 import type { BillingPricing, UsageSummary } from "../entities/org.js";
 import type { Address, VaultRef } from "../entities/primitives.js";
 import type { StreamEvent } from "../entities/stream.js";
-import type { AccountActivityInput, AccountFavoritesInput, AccountPositionsInput, AccountVaultsInput, ActivityInput, AnnotationInput, CreateSubKeyInput, EmailRegisterInput, EventFilter, EventsInput, HistoryInput, KeyVaultsInput, KeyVaultsPageInput, ListAssetsInput, ListVaultsInput, Page, PageInput, SessionAuth, SetAccountFavoriteInput, SiweNonceInput, SiweVerifyInput, VaultMetadataInput } from "./inputs.js";
+import type { AccountActivityInput, AccountFavoritesInput, AccountPositionsInput, AccountVaultsInput, ActivityInput, AnnotationInput, CreateKeyInput, EmailRegisterInput, EventFilter, EventsInput, HistoryInput, KeyVaultsInput, KeyVaultsPageInput, ListAssetsInput, ListVaultsInput, Page, PageInput, SessionAuth, SetAccountFavoriteInput, SiweNonceInput, SiweVerifyInput, VaultMetadataInput } from "./inputs.js";
 /**
  * Key-authenticated `/v1` client, namespaced by resource. The bearer `sk_…`
  * key identifies the caller. Protected methods take a per-call `{ session }`
@@ -84,9 +84,10 @@ export interface T3trisClient {
         }): AsyncIterableIterator<StreamEvent>;
     };
     keys: {
-        /** Create a public/stream-only direct sub-key. Secret is returned once. */
-        create(input: CreateSubKeyInput): Promise<import("../entities/org.js").SubKeyCreated>;
-        /** Atomic, idempotent batch (1–100 refs), calling key or its direct sub-key. */
+        /** Manage scope: create an independent key in this organization.
+         * The secret is returned exactly once, as when creating a key in Curate. */
+        create(input: CreateKeyInput): Promise<import("../entities/org.js").KeyCreated>;
+        /** Atomic, idempotent batch (1–100 refs), self or another customer key in this org. */
         attachVault(input: KeyVaultsInput): Promise<import("../entities/org.js").KeyVaultsResult>;
         detachVault(input: KeyVaultsInput): Promise<import("../entities/org.js").KeyVaultsResult>;
         /** Paginated attached vaults, ordered by chain ID then address. Requires public

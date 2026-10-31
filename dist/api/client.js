@@ -451,7 +451,7 @@ export function createApiClient(options = {}) {
             subscribe,
         },
         keys: {
-            create: (input) => request("/v1/key/subkeys", jsonInit("POST", input)),
+            create: (input) => request("/v1/key/keys", jsonInit("POST", input)),
             attachVault: (input) => request("/v1/key/vaults", jsonInit("POST", input)),
             detachVault: (input) => request("/v1/key/vaults", jsonInit("DELETE", input)),
             listVaults: (input) => request(`/v1/key/vaults${q({ limit: input?.limit, cursor: input?.cursor, keyId: input?.keyId })}`),

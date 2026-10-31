@@ -24,7 +24,7 @@ import type {
   AccountVaultsInput,
   ActivityInput,
   AnnotationInput,
-  CreateSubKeyInput,
+  CreateKeyInput,
   EmailRegisterInput,
   EventFilter,
   EventsInput,
@@ -148,11 +148,12 @@ export interface T3trisClient {
     ): AsyncIterableIterator<StreamEvent>;
   };
 
-  // — key self-service and direct sub-key delegation —
+  // — key self-service and organization key management —
   keys: {
-    /** Create a public/stream-only direct sub-key. Secret is returned once. */
-    create(input: CreateSubKeyInput): Promise<import("../entities/org").SubKeyCreated>;
-    /** Atomic, idempotent batch (1–100 refs), calling key or its direct sub-key. */
+    /** Manage scope: create an independent key in this organization.
+     * The secret is returned exactly once, as when creating a key in Curate. */
+    create(input: CreateKeyInput): Promise<import("../entities/org").KeyCreated>;
+    /** Atomic, idempotent batch (1–100 refs), self or another customer key in this org. */
     attachVault(input: KeyVaultsInput): Promise<import("../entities/org").KeyVaultsResult>;
     detachVault(input: KeyVaultsInput): Promise<import("../entities/org").KeyVaultsResult>;
     /** Paginated attached vaults, ordered by chain ID then address. Requires public

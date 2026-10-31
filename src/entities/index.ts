@@ -31,6 +31,8 @@ export type {
   BillingPricing,
   CreditLedgerEntry,
   ExtraUsage,
+  KeyCreated,
+  KeyVaultsResult,
   Membership,
   Organization,
   OrgInvite,

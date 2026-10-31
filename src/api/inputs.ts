@@ -110,16 +110,16 @@ export interface AttachVaultInput {
 }
 
 /** Atomic attachment mutation. Omit keyId to target the calling key.
- * An explicit target must be a direct sub-key of the calling manage key. */
+ * An explicit target must be an active customer key in the same organization. */
 export interface KeyVaultsInput {
   keyId?: string;
   vaults: VaultRef[];
 }
 
-export interface CreateSubKeyInput {
+export interface CreateKeyInput {
   name: string;
-  /** Defaults to public + stream. Must be a subset of the parent scopes. */
-  scopes?: ("public" | "stream")[];
+  /** Defaults to public + stream. Customer scopes only, as in Curate. */
+  scopes?: ("public" | "stream" | "manage")[];
   monthlyQuota?: number;
 }
 
