@@ -92,8 +92,8 @@ export interface SafeOracleConfig {
   safe: true;
   owner: Address;
   /** Deviation bounds are bigint WAD: 10^16 = 1%. */
-  maxDeviationUp: bigint;
-  maxDeviationDown: bigint;
+  maxDeviationUp?: bigint;
+  maxDeviationDown?: bigint;
   address?: never;
 }
 
@@ -152,8 +152,8 @@ export function encodeDeployVault(args: Omit<DeployVaultArgs, "chainId">): Hex {
     if (!isAddress(oracle.owner) || oracle.owner.toLowerCase() === zeroAddress)
       throw new TypeError("SafeOracle owner must be a nonzero address");
     for (const [name, value, maximum] of [
-      ["maxDeviationUp", oracle.maxDeviationUp, maxUint128],
-      ["maxDeviationDown", oracle.maxDeviationDown, (1n << 64n) - 1n],
+      ["maxDeviationUp", oracle.maxDeviationUp ?? SAFE_ORACLE_DEVIATION_UP, maxUint128],
+      ["maxDeviationDown", oracle.maxDeviationDown ?? SAFE_ORACLE_DEVIATION_DOWN, (1n << 64n) - 1n],
     ] as const) {
       if (typeof value !== "bigint" || value < 0n || value > maximum)
         throw new RangeError(`oracle.${name} is outside the contract range`);
@@ -167,7 +167,11 @@ export function encodeDeployVault(args: Omit<DeployVaultArgs, "chainId">): Hex {
   }
   const oracleAddress = isSafe ? zeroAddress : oracle.address;
   const safeTuple = isSafe
-    ? [oracle.owner, oracle.maxDeviationUp, oracle.maxDeviationDown]
+    ? [
+        oracle.owner,
+        oracle.maxDeviationUp ?? SAFE_ORACLE_DEVIATION_UP,
+        oracle.maxDeviationDown ?? SAFE_ORACLE_DEVIATION_DOWN,
+      ]
     : [zeroAddress, 0n, 0n];
   return concatHex([
     factory.deployVault.sel,

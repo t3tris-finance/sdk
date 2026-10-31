@@ -119,6 +119,19 @@ describe("deployment payload", () => {
       ).toThrow();
     }
   });
+  test("omitted and partially supplied bounds use independent Curate defaults", () => {
+    expect(decode({ ...args, oracle: { safe: true, owner: OWNER } })[1]).toEqual([
+      OWNER,
+      SAFE_ORACLE_DEVIATION_UP,
+      SAFE_ORACLE_DEVIATION_DOWN,
+    ]);
+    expect(
+      decode({ ...args, oracle: { safe: true, owner: OWNER, maxDeviationUp: 7n } })[1],
+    ).toEqual([OWNER, 7n, SAFE_ORACLE_DEVIATION_DOWN]);
+    expect(
+      decode({ ...args, oracle: { safe: true, owner: OWNER, maxDeviationDown: 8n } })[1],
+    ).toEqual([OWNER, SAFE_ORACLE_DEVIATION_UP, 8n]);
+  });
   test("SafeOracle helper preserves current defaults with the new shape", () => {
     expect(defaultSafeOracle(OWNER)).toEqual({
       safe: true,

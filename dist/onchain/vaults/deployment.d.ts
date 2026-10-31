@@ -44,8 +44,8 @@ export interface SafeOracleConfig {
     safe: true;
     owner: Address;
     /** Deviation bounds are bigint WAD: 10^16 = 1%. */
-    maxDeviationUp: bigint;
-    maxDeviationDown: bigint;
+    maxDeviationUp?: bigint;
+    maxDeviationDown?: bigint;
     address?: never;
 }
 export interface ExistingOracleConfig {
