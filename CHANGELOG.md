@@ -7,6 +7,14 @@ release before removal.
 
 ## 0.6.0
 
+- Async-only vault flows: remove `deposit`, `redeem`, `open` and synchronous
+  cap/quote reads (`maxDeposit`, `maxRedeem`, `previewDeposit`, `previewRedeem`,
+  `previewOpen`). Use request → settlement → claim flows instead.
+- Creation always encodes `vaultOpened: false`; the field is removed from
+  `VaultDeployParams`, and extra JavaScript properties cannot override it.
+- Creation and `previewAddress` use the canonical factory
+  `0x0000000000CC53b5Fd649b80f08b05405779cC71`; remove the `factory` argument.
+
 - Remove email registration/login and `EmailRegisterInput` from the public SDK.
   Public authentication uses SIWE; wallet sessions and logout methods remain.
 

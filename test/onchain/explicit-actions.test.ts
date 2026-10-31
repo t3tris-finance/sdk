@@ -12,6 +12,7 @@ import {
   createT3trisClient,
   defaultSafeOracle,
   factoryOracleClone,
+  T3TRIS_FACTORY_ADDRESS,
 } from "../../src";
 import type { OnchainClients } from "../../src/onchain/transport/engine";
 
@@ -83,6 +84,12 @@ const target = { chainId: 42161, address: vault };
 describe("explicit wallet actions", () => {
   test("create submits exactly one creation transaction", async () => {
     const f = fixture();
+    let destination: Address | undefined;
+    f.clients.walletClient.sendTransaction = async (input) => {
+      destination = input.to;
+      f.calls.push("send");
+      return hash;
+    };
     const result = await f.client.vaults.create({
       chainId: 42161,
       salt: hash,
@@ -111,6 +118,7 @@ describe("explicit wallet actions", () => {
       },
     });
     expect(result).toEqual({ status: "submitted", hash });
+    expect(destination).toBe(T3TRIS_FACTORY_ADDRESS);
     expect(f.calls).toEqual(["simulate", "send"]);
   });
   test("wrong wallet or RPC chain never switches or sends", async () => {
@@ -124,7 +132,7 @@ describe("explicit wallet actions", () => {
       expect(f.calls).toEqual([]);
     }
   });
-  test("deposit, requestDeposit and redeem never add approvals, signatures or claims", async () => {
+  test("async requests never add approvals, signatures or claims", async () => {
     const f = fixture();
     await f.client.vaults.requestDeposit({ ...target, amount: 1n });
     await f.client.vaults.requestDeposit({ ...target, amount: 1n });

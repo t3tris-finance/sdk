@@ -169,7 +169,6 @@ transactions. Amounts use the underlying token's decimals.
 ```ts
 const result = await client.vaults.create({
   chainId,
-  factory,
   salt,
   params,
   safeOracle,
@@ -177,13 +176,19 @@ const result = await client.vaults.create({
 });
 ```
 
+Creation and prediction use the canonical factory
+`0x0000000000CC53b5Fd649b80f08b05405779cC71` on supported chains; there is no
+factory input. Every deployment starts in async mode: `vaultOpened` is not
+exposed and is always encoded as false. Direct synchronous deposit/redemption
+and switching to synchronous mode are not SDK capabilities.
+
 `params` is a `VaultDeployParams` object containing the asset, owner, curator, fees,
 metadata and lifecycle flags. Use a unique bytes32 `salt` for each deployment.
 Provide an existing oracle address, or `factoryOracleClone` to create a SafeOracle
 with your chosen owner and deviation bounds.
 
 Predict the address with
-`client.vaults.read.previewAddress({ chainId, factory, deployer, salt })`.
+`client.vaults.read.previewAddress({ chainId, deployer, salt })`.
 Creation does not attach the vault to an API key.
 
 ### On-chain resources

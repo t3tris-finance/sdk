@@ -172,6 +172,10 @@ connected.vaults.read.previewDeposit({ ...sharedRef, amount: rawAmount });
 // @ts-expect-error deployments do not accept a vaultOpened flag
 const deployment: Pick<import("@t3tris/sdk").VaultDeployParams, "vaultOpened"> = {};
 void deployment;
+// @ts-expect-error the SDK selects the canonical deployment factory
+const factoryInput: Pick<import("@t3tris/sdk").DeployVaultArgs, "factory"> = {};
+void factoryInput;
+connected.vaults.read.previewAddress({chainId:42161,deployer:sharedRef.address,salt:"0x00"});
 connected.roles.read.defaultAdminRole(sharedRef);
 // @ts-expect-error vault targets use address, not vault
 connected.vaults.read.isOpen({ chainId: 42161, vault: sharedRef.address });

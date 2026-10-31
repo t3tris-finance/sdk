@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { type Address, encodeAbiParameters, type Hex } from "viem";
-import { createT3trisClient, type VaultRef } from "../../src";
+import { createT3trisClient, T3TRIS_FACTORY_ADDRESS, type VaultRef } from "../../src";
 
 const ref: VaultRef = { chainId: 42161, address: "0x2222222222222222222222222222222222222222" };
 const account = "0x1111111111111111111111111111111111111111" as Address;
@@ -34,6 +34,15 @@ test("one VaultRef targets API, vault reads/writes and vault roles without remap
       },
     },
   });
+  for (const method of ["deposit", "redeem", "open"]) expect(method in wallet.vaults).toBe(false);
+  for (const method of [
+    "maxDeposit",
+    "maxRedeem",
+    "previewDeposit",
+    "previewRedeem",
+    "previewOpen",
+  ])
+    expect(method in wallet.vaults.read).toBe(false);
   expect(await wallet.vaults.read.isOpen(ref)).toBe(true);
   expect(await wallet.vaults.requestDeposit({ ...ref, amount: 1n })).toEqual({
     status: "submitted",
@@ -45,4 +54,30 @@ test("one VaultRef targets API, vault reads/writes and vault roles without remap
   });
   expect(targets.length).toBeGreaterThanOrEqual(5);
   expect(targets.every((target) => target === ref.address)).toBe(true);
+  // Prediction shares the same fixed factory on every selected chain.
+  const predictionTargets: (Address | undefined)[] = [];
+  const predictor = createT3trisClient({
+    walletClient: {
+      getChainId: async () => 4663,
+      getAddresses: async () => [account],
+      sendTransaction: async () => hash,
+    },
+    publicClient: {
+      getChainId: async () => 4663,
+      getCode: async () => "0x",
+      call: async (input) => {
+        predictionTargets.push(input.to);
+        return { data: encodeAbiParameters([{ type: "address" }], [ref.address]) };
+      },
+    },
+  });
+  expect(
+    await predictor.vaults.read.previewAddress({
+      chainId: 4663,
+      deployer: account,
+      salt: hash,
+      ...{ factory: account },
+    }),
+  ).toBe(ref.address);
+  expect(predictionTargets).toEqual([T3TRIS_FACTORY_ADDRESS]);
 });
