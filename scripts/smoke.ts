@@ -71,6 +71,8 @@ const assert = (ok, msg) => {
   }
 };
 
+assert(Number(process.versions.node.split(".")[0]) >= 22, "Node.js 22 minimum");
+assert(typeof globalThis.WebSocket === "function", "native WebSocket for live subscriptions");
 assert(typeof createT3trisClient === "function", "createT3trisClient export");
 assert(typeof SDK_VERSION === "string" && SDK_VERSION.length > 0, "SDK_VERSION export");
 assert(wallet.execute === undefined, "no implicit workflow executor");

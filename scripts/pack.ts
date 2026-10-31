@@ -62,7 +62,7 @@ const publishManifest = {
   },
   files: ["dist", "CHANGELOG.md"],
   sideEffects: false,
-  engines: { node: ">=20" },
+  engines: { node: ">=22" },
   repository: {
     type: "git",
     url: `git+${repoUrl}.git`,

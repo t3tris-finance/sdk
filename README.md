@@ -254,9 +254,11 @@ when a contract revert can be decoded. Transactions are never retried automatica
 
 ## Runtime support
 
-Node.js 20+ and Bun, ESM only. Live subscriptions need a global `WebSocket`,
-available in Node.js 22+ and Bun. Browser wallet integrations use a bundler such
-as Next.js or Vite. No wagmi or RainbowKit dependency is required.
+Requires Node.js 22+ or Bun, including live subscriptions. Browser wallet
+integrations require an ESM-compatible bundler such as Next.js or Vite.
+
+SDK development uses Node.js 26 LTS (`.nvmrc`); CI checks Node.js 22, 24 and 26.
+No wagmi or RainbowKit dependency is required for wallet integration.
 
 [Interactive examples](https://github.com/t3tris-finance/playground) ·
 [Changelog](./CHANGELOG.md) ·
