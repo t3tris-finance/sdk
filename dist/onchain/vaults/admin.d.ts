@@ -77,9 +77,6 @@ export declare function makeVaultActions(clients: OnchainClients): {
             address: Address;
             feeClaimType?: FeeClaimType;
         }) => Promise<import("./previews.js").OpenPreview>;
-        previewCloseFund: (i: {
-            address: Address;
-        }) => Promise<bigint>;
         previewClaimFees: (i: {
             address: Address;
             shares: bigint;
@@ -136,10 +133,6 @@ export declare function makeVaultActions(clients: OnchainClients): {
     }) => Promise<import("../index.js").TransactionResult>;
     pause: (input: Target) => Promise<import("../index.js").TransactionResult>;
     unpause: (input: Target) => Promise<import("../index.js").TransactionResult>;
-    close: (input: Target & {
-        unsafe?: boolean;
-        minAssetsOut?: bigint;
-    }) => Promise<import("../index.js").TransactionResult>;
     enableEndOfFund: (input: Target & {
         feeClaimType?: FeeClaimType;
         unsafe?: boolean;

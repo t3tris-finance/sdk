@@ -153,12 +153,6 @@ const builders = {
   unpause: (i: Target) => txFlow(i.chainId, i.address, encodeCall(curateSilo.unpause, [])),
 
   // lifecycle
-  close: (i: Target & { unsafe?: boolean; minAssetsOut?: bigint }) =>
-    txFlow(
-      i.chainId,
-      i.address,
-      encodeCall(curateVault.closeFund, [i.unsafe ?? false, i.minAssetsOut ?? 0n]),
-    ),
   enableEndOfFund: (
     i: Target & { feeClaimType?: FeeClaimType; unsafe?: boolean; permit2Data?: Hex },
   ) =>
@@ -304,13 +298,6 @@ export function makeVaultActions(clients: OnchainClients) {
           )
         )[0],
       ),
-    previewCloseFund: async (i: { address: Address }) =>
-      (
-        await readCall<readonly [bigint]>(curateVault.previewCloseFund, clients.publicClient, {
-          address: i.address,
-          args: [],
-        })
-      )[0],
     previewClaimFees: async (i: { address: Address; shares: bigint }) =>
       (
         await readCall<readonly [bigint]>(curateVault.previewClaimFees, clients.publicClient, {

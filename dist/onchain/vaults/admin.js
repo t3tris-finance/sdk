@@ -64,7 +64,6 @@ const builders = {
     pause: (i) => txFlow(i.chainId, i.address, encodeCall(curateSilo.pause, [])),
     unpause: (i) => txFlow(i.chainId, i.address, encodeCall(curateSilo.unpause, [])),
     // lifecycle
-    close: (i) => txFlow(i.chainId, i.address, encodeCall(curateVault.closeFund, [i.unsafe ?? false, i.minAssetsOut ?? 0n])),
     enableEndOfFund: (i) => txFlow(i.chainId, i.address, encodeCall(curateVault.enableEndOfFund, [
         i.feeClaimType ?? FeeClaimType.None,
         i.unsafe ?? false,
@@ -117,10 +116,6 @@ export function makeVaultActions(clients) {
         previewSettleDeposits: async (i) => depositsPreview((await readCall(curateVault.previewSettleDeposits, clients.publicClient, { address: i.address, args: [i.feeClaimType ?? FeeClaimType.None] }))[0]),
         previewSettleRedemptions: async (i) => redemptionsPreview((await readCall(curateVault.previewSettleRedemptions, clients.publicClient, { address: i.address, args: [i.fullClaim ?? false] }))[0]),
         previewEnableEndOfFund: async (i) => openPreview((await readCall(curateVault.previewEnableEndOfFund, clients.publicClient, { address: i.address, args: [i.feeClaimType ?? FeeClaimType.None] }))[0]),
-        previewCloseFund: async (i) => (await readCall(curateVault.previewCloseFund, clients.publicClient, {
-            address: i.address,
-            args: [],
-        }))[0],
         previewClaimFees: async (i) => (await readCall(curateVault.previewClaimFees, clients.publicClient, {
             address: i.address,
             args: [i.shares],

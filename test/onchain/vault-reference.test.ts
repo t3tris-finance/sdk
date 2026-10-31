@@ -34,13 +34,15 @@ test("one VaultRef targets API, vault reads/writes and vault roles without remap
       },
     },
   });
-  for (const method of ["deposit", "redeem", "open"]) expect(method in wallet.vaults).toBe(false);
+  for (const method of ["deposit", "redeem", "open", "close"])
+    expect(method in wallet.vaults).toBe(false);
   for (const method of [
     "maxDeposit",
     "maxRedeem",
     "previewDeposit",
     "previewRedeem",
     "previewOpen",
+    "previewCloseFund",
   ])
     expect(method in wallet.vaults.read).toBe(false);
   expect(await wallet.vaults.read.isOpen(ref)).toBe(true);

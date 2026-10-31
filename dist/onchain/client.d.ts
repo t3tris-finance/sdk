@@ -70,11 +70,6 @@ export declare function createOnchainClient(options: WalletOptions): {
             } & {
                 chainId: number;
             }) => Promise<import("../index.js").OpenPreview>;
-            previewCloseFund: (input: {
-                address: Address;
-            } & {
-                chainId: number;
-            }) => Promise<bigint>;
             previewClaimFees: (input: {
                 address: Address;
                 shares: bigint;
@@ -148,10 +143,6 @@ export declare function createOnchainClient(options: WalletOptions): {
         }) => Promise<import("../index.js").TransactionResult>;
         pause: (input: import("./vaults/admin.js").Target) => Promise<import("../index.js").TransactionResult>;
         unpause: (input: import("./vaults/admin.js").Target) => Promise<import("../index.js").TransactionResult>;
-        close: (input: import("./vaults/admin.js").Target & {
-            unsafe?: boolean;
-            minAssetsOut?: bigint;
-        }) => Promise<import("../index.js").TransactionResult>;
         enableEndOfFund: (input: import("./vaults/admin.js").Target & {
             feeClaimType?: import("../index.js").FeeClaimType;
             unsafe?: boolean;

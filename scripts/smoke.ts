@@ -167,6 +167,10 @@ connected.vaults.deposit({ ...sharedRef, amount: rawAmount });
 connected.vaults.redeem({ ...sharedRef, shares: rawAmount });
 // @ts-expect-error opening synchronous mode is not a public SDK capability
 connected.vaults.open(sharedRef);
+// @ts-expect-error closing synchronous mode is not a public SDK capability
+connected.vaults.close(sharedRef);
+// @ts-expect-error close preview is not exposed
+connected.vaults.read.previewCloseFund(sharedRef);
 // @ts-expect-error synchronous quotes are not exposed
 connected.vaults.read.previewDeposit({ ...sharedRef, amount: rawAmount });
 // @ts-expect-error deployments do not accept a vaultOpened flag

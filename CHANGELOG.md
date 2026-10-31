@@ -22,9 +22,9 @@ release before removal.
   safe-oracle shape. Use `VaultConfig`, `VaultFees`, `VaultOracleConfig` instead
   of contract-shaped creation helper types.
 
-- Async-only vault flows: remove `deposit`, `redeem`, `open` and synchronous
+- Async-only vault flows: remove `deposit`, `redeem`, `open`, `close` and synchronous
   cap/quote reads (`maxDeposit`, `maxRedeem`, `previewDeposit`, `previewRedeem`,
-  `previewOpen`). Use request → settlement → claim flows instead.
+  `previewOpen`, `previewCloseFund`). Use request → settlement → claim flows instead.
 - Creation always encodes `vaultOpened: false`; the field is removed from
   `VaultDeployParams`, and extra JavaScript properties cannot override it.
 - Creation and `previewAddress` use the canonical factory
