@@ -102,7 +102,6 @@ describe("explicit wallet actions", () => {
         depositEnabled: false,
         depositWhitelistEnabled: false,
         withdrawWhitelistEnabled: false,
-        vaultOpened: false,
         globalFees: {
           entryFeeWad: 0n,
           exitFeeWad: 0n,
@@ -128,9 +127,9 @@ describe("explicit wallet actions", () => {
   });
   test("deposit, requestDeposit and redeem never add approvals, signatures or claims", async () => {
     const f = fixture();
-    await f.client.vaults.deposit({ ...target, amount: 1n });
     await f.client.vaults.requestDeposit({ ...target, amount: 1n });
-    await f.client.vaults.redeem({ ...target, shares: 1n });
+    await f.client.vaults.requestDeposit({ ...target, amount: 1n });
+    await f.client.vaults.requestRedeem({ ...target, shares: 1n });
     expect(f.calls).toEqual(["simulate", "send", "simulate", "send", "simulate", "send"]);
   });
   test("settlement and fee claim do not fund the curator implicitly", async () => {
@@ -160,7 +159,7 @@ describe("explicit wallet actions", () => {
   test("failed send is never retried or replaced by an approval", async () => {
     const f = fixture();
     f.failSend(new Error("Response lost"));
-    await expect(f.client.vaults.deposit({ ...target, amount: 1n })).rejects.toThrow(
+    await expect(f.client.vaults.requestDeposit({ ...target, amount: 1n })).rejects.toThrow(
       "Response lost",
     );
     expect(f.calls).toEqual(["simulate", "send"]);

@@ -83,7 +83,7 @@ describe("named contract previews", () => {
     });
   });
   test("open and end-of-fund name the silo flow separately from curator payout", async () => {
-    for (const method of ["previewOpen", "previewEnableEndOfFund"] as const) {
+    for (const method of ["previewEnableEndOfFund"] as const) {
       const client = fixture(curateVault.previewOpenFund.out, combined);
       const result = await client.vaults.read[method]({ chainId: 42161, address: vault });
       expect(result.assetsToSilo).toBe(27n);

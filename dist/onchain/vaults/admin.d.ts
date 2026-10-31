@@ -73,10 +73,6 @@ export declare function makeVaultActions(clients: OnchainClients): {
             address: Address;
             fullClaim?: boolean;
         }) => Promise<import("./previews.js").SettleRedemptionsPreview>;
-        previewOpen: (i: {
-            address: Address;
-            feeClaimType?: FeeClaimType;
-        }) => Promise<import("./previews.js").OpenPreview>;
         previewEnableEndOfFund: (i: {
             address: Address;
             feeClaimType?: FeeClaimType;
@@ -140,11 +136,6 @@ export declare function makeVaultActions(clients: OnchainClients): {
     }) => Promise<import("../index.js").TransactionResult>;
     pause: (input: Target) => Promise<import("../index.js").TransactionResult>;
     unpause: (input: Target) => Promise<import("../index.js").TransactionResult>;
-    open: (input: Target & {
-        feeClaimType?: FeeClaimType;
-        unsafe?: boolean;
-        permit2Data?: Hex;
-    }) => Promise<import("../index.js").TransactionResult>;
     close: (input: Target & {
         unsafe?: boolean;
         minAssetsOut?: bigint;

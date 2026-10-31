@@ -89,7 +89,6 @@ export interface VaultDeployParams {
   depositEnabled: boolean;
   depositWhitelistEnabled: boolean;
   withdrawWhitelistEnabled: boolean;
-  vaultOpened: boolean;
 }
 
 export interface SafeOracleParams {
@@ -129,7 +128,7 @@ function paramsTuple(p: VaultDeployParams): readonly unknown[] {
     p.depositEnabled,
     p.depositWhitelistEnabled,
     p.withdrawWhitelistEnabled,
-    p.vaultOpened,
+    false, // SDK 0.6 creates asynchronous vaults regardless of extra runtime fields.
   ];
 }
 

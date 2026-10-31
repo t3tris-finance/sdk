@@ -44,7 +44,6 @@ export interface VaultDeployParams {
     depositEnabled: boolean;
     depositWhitelistEnabled: boolean;
     withdrawWhitelistEnabled: boolean;
-    vaultOpened: boolean;
 }
 export interface SafeOracleParams {
     owner: Address;

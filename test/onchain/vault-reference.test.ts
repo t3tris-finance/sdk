@@ -35,7 +35,7 @@ test("one VaultRef targets API, vault reads/writes and vault roles without remap
     },
   });
   expect(await wallet.vaults.read.isOpen(ref)).toBe(true);
-  expect(await wallet.vaults.deposit({ ...ref, amount: 1n })).toEqual({
+  expect(await wallet.vaults.requestDeposit({ ...ref, amount: 1n })).toEqual({
     status: "submitted",
     hash,
   });

@@ -12,18 +12,12 @@ export function makeDepositorActions(clients) {
             to: i.factory,
             data: encodeDeployVault(i),
         }),
-        deposit: (i) => tx(i, encodeCall(earn.depositWithPayload, [
-            i.receiver ?? account(),
-            i.amount,
-            i.permit2Data ?? "0x",
-        ])),
         requestDeposit: (i) => tx(i, encodeCall(earn.requestDeposit, [
             i.controller ?? account(),
             false,
             i.amount,
             i.permit2Data ?? "0x",
         ])),
-        redeem: (i) => tx(i, encodeCall(earn.redeem, [i.shares, i.receiver ?? account(), i.owner ?? account()])),
         requestRedeem: (i) => tx(i, encodeCall(earn.requestRedeem, [
             i.controller ?? account(),
             i.owner ?? account(),
@@ -54,22 +48,6 @@ export function makeDepositorActions(clients) {
         totalSupply: async (i) => (await readCall(erc20.totalSupply, clients.publicClient, {
             address: i.address,
             args: [],
-        }))[0],
-        maxDeposit: async (i) => (await readCall(earn.maxDeposit, clients.publicClient, {
-            address: i.address,
-            args: [i.receiver],
-        }))[0],
-        maxRedeem: async (i) => (await readCall(earn.maxRedeem, clients.publicClient, {
-            address: i.address,
-            args: [i.owner],
-        }))[0],
-        previewDeposit: async (i) => (await readCall(earn.previewDeposit, clients.publicClient, {
-            address: i.address,
-            args: [i.amount],
-        }))[0],
-        previewRedeem: async (i) => (await readCall(earn.previewRedeem, clients.publicClient, {
-            address: i.address,
-            args: [i.shares],
         }))[0],
         previewClaimDeposit: async (i) => (await readCall(earn.previewClaimDeposit, clients.publicClient, {
             address: i.address,

@@ -31,30 +31,6 @@ export declare function createOnchainClient(options: WalletOptions): {
             } & {
                 chainId: number;
             }) => Promise<bigint>;
-            maxDeposit: (input: {
-                address: Address;
-                receiver: Address;
-            } & {
-                chainId: number;
-            }) => Promise<bigint>;
-            maxRedeem: (input: {
-                address: Address;
-                owner: Address;
-            } & {
-                chainId: number;
-            }) => Promise<bigint>;
-            previewDeposit: (input: {
-                address: Address;
-                amount: bigint;
-            } & {
-                chainId: number;
-            }) => Promise<bigint>;
-            previewRedeem: (input: {
-                address: Address;
-                shares: bigint;
-            } & {
-                chainId: number;
-            }) => Promise<bigint>;
             previewClaimDeposit: (input: {
                 address: Address;
                 owner: Address;
@@ -89,12 +65,6 @@ export declare function createOnchainClient(options: WalletOptions): {
             } & {
                 chainId: number;
             }) => Promise<import("../index.js").SettleRedemptionsPreview>;
-            previewOpen: (input: {
-                address: Address;
-                feeClaimType?: import("../index.js").FeeClaimType;
-            } & {
-                chainId: number;
-            }) => Promise<import("../index.js").OpenPreview>;
             previewEnableEndOfFund: (input: {
                 address: Address;
                 feeClaimType?: import("../index.js").FeeClaimType;
@@ -140,9 +110,7 @@ export declare function createOnchainClient(options: WalletOptions): {
             }) => Promise<import("../index.js").QueuedManagementFee>;
         };
         create: (input: import("../index.js").DeployVaultArgs) => Promise<import("../index.js").TransactionResult>;
-        deposit: (input: import("./vaults/actions.js").DepositInput) => Promise<import("../index.js").TransactionResult>;
         requestDeposit: (input: import("./vaults/actions.js").RequestDepositInput) => Promise<import("../index.js").TransactionResult>;
-        redeem: (input: import("./vaults/actions.js").RedeemInput) => Promise<import("../index.js").TransactionResult>;
         requestRedeem: (input: import("./vaults/actions.js").RequestRedeemInput) => Promise<import("../index.js").TransactionResult>;
         decreaseDepositRequest: (input: import("./vaults/actions.js").DecreaseDepositInput) => Promise<import("../index.js").TransactionResult>;
         decreaseRedeemRequest: (input: import("./vaults/actions.js").DecreaseRedeemInput) => Promise<import("../index.js").TransactionResult>;
@@ -181,11 +149,6 @@ export declare function createOnchainClient(options: WalletOptions): {
         }) => Promise<import("../index.js").TransactionResult>;
         pause: (input: import("./vaults/admin.js").Target) => Promise<import("../index.js").TransactionResult>;
         unpause: (input: import("./vaults/admin.js").Target) => Promise<import("../index.js").TransactionResult>;
-        open: (input: import("./vaults/admin.js").Target & {
-            feeClaimType?: import("../index.js").FeeClaimType;
-            unsafe?: boolean;
-            permit2Data?: import("viem").Hex;
-        }) => Promise<import("../index.js").TransactionResult>;
         close: (input: import("./vaults/admin.js").Target & {
             unsafe?: boolean;
             minAssetsOut?: bigint;

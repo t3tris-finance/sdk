@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { keccak256, stringToBytes, zeroAddress } from "viem";
+import {
+  decodeAbiParameters,
+  keccak256,
+  parseAbiParameters,
+  stringToBytes,
+  zeroAddress,
+} from "viem";
 import {
   defaultSafeOracle,
   encodeDeployVault,
@@ -50,7 +56,6 @@ describe("encodeDeployVault", () => {
         depositEnabled: true,
         depositWhitelistEnabled: false,
         withdrawWhitelistEnabled: false,
-        vaultOpened: false,
       },
       safeOracle: defaultSafeOracle(OWNER),
       oracle: zeroAddress,
@@ -96,7 +101,6 @@ describe("encodeDeployVault", () => {
       depositEnabled: true,
       depositWhitelistEnabled: false,
       withdrawWhitelistEnabled: false,
-      vaultOpened: false,
     };
     const base = encodeDeployVault({
       params,
@@ -104,6 +108,21 @@ describe("encodeDeployVault", () => {
       oracle: factoryOracleClone,
       salt: SALT,
     });
+    // JavaScript callers can send extra properties; they must never change calldata.
+    const attemptedSync = encodeDeployVault({
+      params: { ...params, ...{ vaultOpened: true } },
+      safeOracle: defaultSafeOracle(OWNER),
+      oracle: factoryOracleClone,
+      salt: SALT,
+    });
+    expect(attemptedSync).toBe(base);
+    const [decoded] = decodeAbiParameters(
+      parseAbiParameters(
+        "(string,string,string,(uint64,uint64,uint64,uint64,uint32),address,address,address,address,address,bool,bool,bool,bool,bool), (address,uint128,uint64), address, bytes32, bytes32",
+      ),
+      `0x${attemptedSync.slice(10)}`,
+    );
+    expect(decoded[13]).toBe(false);
     const tightened = encodeDeployVault({
       params,
       safeOracle: defaultSafeOracle(OWNER, { maxDeviationUpWad: 5n, maxDeviationDownWad: 6n }),

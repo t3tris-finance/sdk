@@ -5,20 +5,10 @@ interface Target {
     address: Address;
     chainId: number;
 }
-export interface DepositInput extends Target {
-    amount: bigint;
-    receiver?: Address;
-    permit2Data?: Hex;
-}
 export interface RequestDepositInput extends Target {
     amount: bigint;
     controller?: Address;
     permit2Data?: Hex;
-}
-export interface RedeemInput extends Target {
-    shares: bigint;
-    receiver?: Address;
-    owner?: Address;
 }
 export interface RequestRedeemInput extends Target {
     shares: bigint;
@@ -56,31 +46,13 @@ export declare function makeDepositorActions(clients: OnchainClients): {
         totalSupply: (i: {
             address: Address;
         }) => Promise<bigint>;
-        maxDeposit: (i: {
-            address: Address;
-            receiver: Address;
-        }) => Promise<bigint>;
-        maxRedeem: (i: {
-            address: Address;
-            owner: Address;
-        }) => Promise<bigint>;
-        previewDeposit: (i: {
-            address: Address;
-            amount: bigint;
-        }) => Promise<bigint>;
-        previewRedeem: (i: {
-            address: Address;
-            shares: bigint;
-        }) => Promise<bigint>;
         previewClaimDeposit: (i: {
             address: Address;
             owner: Address;
         }) => Promise<bigint>;
     }>;
     create: (input: DeployVaultArgs) => Promise<import("../index.js").TransactionResult>;
-    deposit: (input: DepositInput) => Promise<import("../index.js").TransactionResult>;
     requestDeposit: (input: RequestDepositInput) => Promise<import("../index.js").TransactionResult>;
-    redeem: (input: RedeemInput) => Promise<import("../index.js").TransactionResult>;
     requestRedeem: (input: RequestRedeemInput) => Promise<import("../index.js").TransactionResult>;
     decreaseDepositRequest: (input: DecreaseDepositInput) => Promise<import("../index.js").TransactionResult>;
     decreaseRedeemRequest: (input: DecreaseRedeemInput) => Promise<import("../index.js").TransactionResult>;

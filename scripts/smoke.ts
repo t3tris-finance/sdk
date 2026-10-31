@@ -160,7 +160,18 @@ connected.vaults.settle({chainId: 42161, address: "0x000000000000000000000000000
 declare const sharedRef: import("@t3tris/sdk").VaultRef;
 connected.vaults.read.isOpen(sharedRef);
 declare const rawAmount: bigint;
+connected.vaults.requestDeposit({ ...sharedRef, amount: rawAmount });
+// @ts-expect-error synchronous deposits are not public SDK capabilities
 connected.vaults.deposit({ ...sharedRef, amount: rawAmount });
+// @ts-expect-error synchronous redemption is not a public SDK capability
+connected.vaults.redeem({ ...sharedRef, shares: rawAmount });
+// @ts-expect-error opening synchronous mode is not a public SDK capability
+connected.vaults.open(sharedRef);
+// @ts-expect-error synchronous quotes are not exposed
+connected.vaults.read.previewDeposit({ ...sharedRef, amount: rawAmount });
+// @ts-expect-error deployments do not accept a vaultOpened flag
+const deployment: Pick<import("@t3tris/sdk").VaultDeployParams, "vaultOpened"> = {};
+void deployment;
 connected.roles.read.defaultAdminRole(sharedRef);
 // @ts-expect-error vault targets use address, not vault
 connected.vaults.read.isOpen({ chainId: 42161, vault: sharedRef.address });

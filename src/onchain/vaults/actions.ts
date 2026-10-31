@@ -8,20 +8,10 @@ interface Target {
   address: Address;
   chainId: number;
 }
-export interface DepositInput extends Target {
-  amount: bigint;
-  receiver?: Address;
-  permit2Data?: Hex;
-}
 export interface RequestDepositInput extends Target {
   amount: bigint;
   controller?: Address;
   permit2Data?: Hex;
-}
-export interface RedeemInput extends Target {
-  shares: bigint;
-  receiver?: Address;
-  owner?: Address;
 }
 export interface RequestRedeemInput extends Target {
   shares: bigint;
@@ -56,15 +46,6 @@ export function makeDepositorActions(clients: OnchainClients) {
       to: i.factory,
       data: encodeDeployVault(i),
     }),
-    deposit: (i: DepositInput) =>
-      tx(
-        i,
-        encodeCall(earn.depositWithPayload, [
-          i.receiver ?? account(),
-          i.amount,
-          i.permit2Data ?? "0x",
-        ]),
-      ),
     requestDeposit: (i: RequestDepositInput) =>
       tx(
         i,
@@ -75,8 +56,6 @@ export function makeDepositorActions(clients: OnchainClients) {
           i.permit2Data ?? "0x",
         ]),
       ),
-    redeem: (i: RedeemInput) =>
-      tx(i, encodeCall(earn.redeem, [i.shares, i.receiver ?? account(), i.owner ?? account()])),
     requestRedeem: (i: RequestRedeemInput) =>
       tx(
         i,
@@ -127,34 +106,6 @@ export function makeDepositorActions(clients: OnchainClients) {
         await readCall<[bigint]>(erc20.totalSupply, clients.publicClient, {
           address: i.address,
           args: [],
-        })
-      )[0],
-    maxDeposit: async (i: { address: Address; receiver: Address }) =>
-      (
-        await readCall<[bigint]>(earn.maxDeposit, clients.publicClient, {
-          address: i.address,
-          args: [i.receiver],
-        })
-      )[0],
-    maxRedeem: async (i: { address: Address; owner: Address }) =>
-      (
-        await readCall<[bigint]>(earn.maxRedeem, clients.publicClient, {
-          address: i.address,
-          args: [i.owner],
-        })
-      )[0],
-    previewDeposit: async (i: { address: Address; amount: bigint }) =>
-      (
-        await readCall<[bigint]>(earn.previewDeposit, clients.publicClient, {
-          address: i.address,
-          args: [i.amount],
-        })
-      )[0],
-    previewRedeem: async (i: { address: Address; shares: bigint }) =>
-      (
-        await readCall<[bigint]>(earn.previewRedeem, clients.publicClient, {
-          address: i.address,
-          args: [i.shares],
         })
       )[0],
     previewClaimDeposit: async (i: { address: Address; owner: Address }) =>

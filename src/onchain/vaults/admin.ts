@@ -153,16 +153,6 @@ const builders = {
   unpause: (i: Target) => txFlow(i.chainId, i.address, encodeCall(curateSilo.unpause, [])),
 
   // lifecycle
-  open: (i: Target & { feeClaimType?: FeeClaimType; unsafe?: boolean; permit2Data?: Hex }) =>
-    txFlow(
-      i.chainId,
-      i.address,
-      encodeCall(curateVault.openFund, [
-        i.feeClaimType ?? FeeClaimType.None,
-        i.unsafe ?? false,
-        i.permit2Data ?? "0x",
-      ]),
-    ),
   close: (i: Target & { unsafe?: boolean; minAssetsOut?: bigint }) =>
     txFlow(
       i.chainId,
@@ -301,16 +291,6 @@ export function makeVaultActions(clients: OnchainClients) {
             curateVault.previewSettleRedemptions,
             clients.publicClient,
             { address: i.address, args: [i.fullClaim ?? false] },
-          )
-        )[0],
-      ),
-    previewOpen: async (i: { address: Address; feeClaimType?: FeeClaimType }) =>
-      openPreview(
-        (
-          await readCall<readonly [CombinedPreviewTuple]>(
-            curateVault.previewOpenFund,
-            clients.publicClient,
-            { address: i.address, args: [i.feeClaimType ?? FeeClaimType.None] },
           )
         )[0],
       ),
