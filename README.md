@@ -3,20 +3,14 @@
 A TypeScript client for T3tris vault data and on-chain actions.
 Use API credentials on your backend or connect an existing wallet to submit transactions.
 
-## 0.6.0 preview
-
-This branch contains the unreleased 0.6.0 SDK. For production, install the tagged
-0.5.0 release below and use its documentation. The key-management examples in
-this branch require the 0.6 API contract.
-
 ## Installation
 
 ```sh
-bun add git+https://github.com/t3tris-finance/sdk.git#v0.5.0
+bun add git+https://github.com/t3tris-finance/sdk.git#v0.6.0
 ```
 
 The package includes ESM JavaScript and TypeScript declarations. Commit your lockfile
-to keep installations reproducible. Select an explicit release tag (`v0.5.0`,
+to keep installations reproducible. Select an explicit release tag (`v0.6.0`,
 `v0.4.0`) instead of tracking `main`. Release tags are fixed; fixes ship under a
 new version rather than moving an existing tag.
 
@@ -85,7 +79,7 @@ Pass an `AbortSignal` to stop a subscription. Persist a checkpoint only after
 processing delivered events, then supply it as `since` to resume later.
 `onProgress` also reports server watermarks across filtered rows.
 
-## Manage organization keys (0.6 preview)
+## Manage organization keys
 
 A backend holding a `manage` key can create independent keys in its organization,
 just like creating keys in Curate. Save the returned secret once:

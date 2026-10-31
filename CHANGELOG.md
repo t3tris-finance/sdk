@@ -5,7 +5,7 @@ SemVer: while it is `0.x`, minor releases may contain breaking changes, each
 listed with migration notes. Deprecations are announced at least one minor
 release before removal.
 
-## 0.6.0 (unreleased)
+## 0.6.0
 
 - `keys.create({ name, scopes?, monthlyQuota? })` creates an independent API key
   in the same organization using `manage` scope. Returns `{ id, secret }` once.
