@@ -68,7 +68,7 @@ export {
   valuationNavs,
   weightedApyUpTo,
 } from "./performance";
-export type { Position } from "./position";
+export type { Position, PositionPnlHistory, PositionPnlPoint } from "./position";
 export type { Address, AssetRef, Hash, VaultRef } from "./primitives";
 export type { StreamEvent } from "./stream";
 export type {

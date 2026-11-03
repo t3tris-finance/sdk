@@ -6,6 +6,7 @@ import type {
   AuthSession,
   Chain,
   Position,
+  PositionPnlHistory,
   Vault,
   VaultAnnotation,
   VaultComposition,
@@ -530,6 +531,10 @@ export function createApiClient(options: T3trisClientOptions = {}): T3trisClient
             limit: input.limit,
             cursor: input.cursor,
           })}`,
+        ),
+      getPositionPnl: (input) =>
+        request<PositionPnlHistory>(
+          `/v0/accounts/${input.address.toLowerCase()}/pnl/${input.vault.chainId}/${input.vault.address.toLowerCase()}`,
         ),
       listPositions: (input) =>
         request<Page<Position>>(

@@ -6,6 +6,7 @@ import type {
   AuthSession,
   Chain,
   Position,
+  PositionPnlHistory,
   Vault,
   VaultAnnotation,
   VaultComposition,
@@ -111,6 +112,9 @@ export interface T3trisClient {
     /** Vaults this account operates (curator or owner) — public AND private. */
     listVaults(input: AccountVaultsInput): Promise<Page<Vault>>;
     listPositions(input: AccountPositionsInput): Promise<Page<Position>>;
+    /** Cumulative asset-denominated PnL, neutral to deposits, withdrawals and
+     * share transfers. Historical archive reads; 502 if unavailable, never latest substitution. */
+    getPositionPnl(input: { address: Address; vault: VaultRef }): Promise<PositionPnlHistory>;
     listActivity(input: AccountActivityInput): Promise<Page<ActivityEvent>>;
     listFavorites(input: AccountFavoritesInput): Promise<AccountFavorites>;
     /** Upserts the pin; 403 when the address neither holds a position nor
