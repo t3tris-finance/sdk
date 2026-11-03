@@ -420,6 +420,7 @@ export function createApiClient(options = {}) {
                 limit: input.limit,
                 cursor: input.cursor,
             })}`),
+            getPositionPnl: (input) => request(`/v0/accounts/${input.address.toLowerCase()}/pnl/${input.vault.chainId}/${input.vault.address.toLowerCase()}`),
             listPositions: (input) => request(`/v0/accounts/${input.address.toLowerCase()}/positions${q({
                 chainId: input.chainId,
                 limit: input.limit,

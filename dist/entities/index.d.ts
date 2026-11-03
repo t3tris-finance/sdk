@@ -14,7 +14,7 @@ export type { AccountFavorite, AccountFavorites, AddOrgMemberResult, ApiKeyMaske
 export { apiKeyHint, CREDIT_PURCHASE_MAX_CENTS, CREDIT_PURCHASE_MIN_CENTS, LIMIT_CEILINGS, usdcUnitsFromCents, } from "./org.js";
 export type { PerformanceRange, PerformanceSnapshot } from "./performance.js";
 export { canonicalPerformanceHistory, chartApyPoints, latestChartApy, valuationNavs, weightedApyUpTo, } from "./performance.js";
-export type { Position } from "./position.js";
+export type { Position, PositionPnlHistory, PositionPnlPoint } from "./position.js";
 export type { Address, AssetRef, Hash, VaultRef } from "./primitives.js";
 export type { StreamEvent } from "./stream.js";
 export type { ApyByWindow, ApyWindow, FeePolicy, Vault, VaultGovernance, VaultRoleAdmin, VaultRoleAssignment, VaultSnapshot, VaultVisibility, VaultWhitelistEntry, VaultWhitelistKind, } from "./vault.js";
