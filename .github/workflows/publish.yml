@@ -7,8 +7,9 @@ name: Publish
 #
 # Requires a trusted publisher in the package settings on npmjs.com:
 # GitHub Actions, org t3tris-finance, repository sdk, workflow publish.yml,
-# action "npm stage publish". A version already on npm is skipped, so merges
-# without a version bump stay green.
+# action "npm stage publish". A version already published, or already staged
+# and awaiting approval, is skipped so merges without a version bump stay
+# green.
 
 on:
   push:
@@ -89,4 +90,17 @@ jobs:
       - name: Stage publish to npmjs
         if: steps.published.outputs.exists != 'true'
         working-directory: .pack
-        run: npm stage publish
+        # Staged versions are invisible to `npm view`, so a re-run while a
+        # release awaits approval hits a duplicate-stage error: treat that
+        # specific case as a no-op. Any other staging/publishing error fails.
+        run: |
+          if output=$(npm stage publish 2>&1); then
+            echo "$output"
+            exit 0
+          fi
+          echo "$output"
+          if echo "$output" | grep -qiE 'already (staged|exists)'; then
+            echo "::notice::Version already staged on npm and awaiting approval."
+            exit 0
+          fi
+          exit 1
