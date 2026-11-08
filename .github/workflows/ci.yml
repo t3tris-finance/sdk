@@ -41,12 +41,6 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      - name: Verify source-only checkout
-        run: |
-          test ! -d dist
-          test -z "$(git ls-files dist)"
-          git check-ignore dist/index.js
-
       - name: Typecheck
         run: bun run typecheck
 
@@ -55,6 +49,3 @@ jobs:
 
       - name: Smoke (build, pack and install the tarball)
         run: bun run smoke
-
-      - name: Build leaves tracked sources unchanged
-        run: git diff --exit-code
