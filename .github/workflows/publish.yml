@@ -1,6 +1,6 @@
 name: Publish
 
-# Stages @t3tris/sdk on npmjs after a merge to main. Publication uses OIDC
+# Stages @t3tris-labs/sdk on npmjs after a merge to main. Publication uses OIDC
 # trusted publishing (no long-lived npm token) and the staged flow: each
 # release waits in the staging area until a maintainer approves it with 2FA
 # on npmjs.com (Staged Packages tab) or with `npm stage approve <stage-id>`.
@@ -113,9 +113,9 @@ jobs:
         working-directory: .pack
         run: |
           version=$(node -p "require('./package.json').version")
-          if npm view "@t3tris/sdk@$version" version >/dev/null 2>&1; then
+          if npm view "@t3tris-labs/sdk@$version" version >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "@t3tris/sdk@$version is already on npm, skipping."
+            echo "@t3tris-labs/sdk@$version is already on npm, skipping."
           fi
 
       - name: Stage publish to npmjs

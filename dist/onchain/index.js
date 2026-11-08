@@ -1,4 +1,4 @@
-/** Optional protocol helpers. All actions use createT3trisClient from @t3tris/sdk. */
+/** Optional protocol helpers. All actions use createT3trisClient from @t3tris-labs/sdk. */
 export * from "./constants.js";
 export { buildPermitSingleTypedData, encodePermit2Data, PERMIT2_ADDRESS, permitDeadlines, } from "./permit2/index.js";
 export { ActionCancelledError, ChainMismatchError, PlatformActionError, } from "./transport/engine.js";
