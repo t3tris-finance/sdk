@@ -4,6 +4,9 @@ name: Publish
 # trusted publishing (no long-lived npm token) and the staged flow: each
 # release waits in the staging area until a maintainer approves it with 2FA
 # on npmjs.com (Staged Packages tab) or with `npm stage approve <stage-id>`.
+# Build/test/smoke execute third-party code and run without credentials; only
+# the publish job holds the OIDC permission, and it stages the artifact
+# produced by the build job.
 #
 # Requires a trusted publisher in the package settings on npmjs.com:
 # GitHub Actions, org t3tris-finance, repository sdk, workflow publish.yml,
@@ -18,16 +21,14 @@ on:
 
 permissions:
   contents: read
-  id-token: write # OIDC token for npm trusted publishing
 
 concurrency:
   group: publish-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  publish:
-    name: Stage publish to npmjs
-    if: github.ref == 'refs/heads/main'
+  build:
+    name: Test / pack / smoke
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -73,9 +74,37 @@ jobs:
           }
           EOF
 
+      - name: Upload the staged package
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: .pack
+          retention-days: 7
+
+  publish:
+    name: Stage publish to npmjs
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      id-token: write # OIDC token for npm trusted publishing; all other scopes none
+
+    steps:
+      - name: Download the staged package
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: .pack
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          registry-url: https://registry.npmjs.org
+
       - name: npm CLI with staged publishing support
         run: |
-          npm install --global npm@latest
+          npm install --global npm@11.21.2 # staged publishing requires npm >= 11.15; pinned
           npm --version
 
       - name: Skip when the version is already published
