@@ -1,8 +1,8 @@
 name: Publish
 
-# Stages @t3tris-labs/sdk only after merging a PR labeled exactly "publish" into main.
-# Direct pushes and merges without that label do not build, tag or stage a release.
-# Manual reruns on main apply the same label check. Publication uses OIDC
+# Automatically stages after merging a PR labeled exactly "publish" into main.
+# Manual dispatch on main explicitly authorizes tagging and staging without a label.
+# Other pushes do not build, tag or stage a release. Publication uses OIDC
 # trusted publishing (no long-lived npm token) and the staged flow: each
 # release waits in the staging area until a maintainer approves it with 2FA
 # on npmjs.com (Staged Packages tab) or with `npm stage approve <stage-id>`.
@@ -30,7 +30,7 @@ concurrency:
 
 jobs:
   eligibility:
-    name: Require merged PR with publish label
+    name: Require publish label or manual dispatch
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -43,6 +43,11 @@ jobs:
         id: pr
         with:
           script: |
+            if (context.eventName === "workflow_dispatch") {
+              core.setOutput("publish", "true");
+              core.info("Manual dispatch on main authorizes tagging and staging.");
+              return;
+            }
             const prs = await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit, {
               owner: context.repo.owner,
               repo: context.repo.repo,
