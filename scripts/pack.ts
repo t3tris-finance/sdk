@@ -3,9 +3,9 @@
  * `npm pack`. Exports point at built `dist/`. The repository manifest keeps
  * source exports so tests and examples typecheck without a build.
  *
- * The staged manifest stays `private` and has no `license` field. Publishing
- * is disabled until a maintainer adds the license text and flips the gates
- * in README.md. Do not `npm publish` this tarball before that.
+ * The staged manifest is publishable. Releases go through the Publish
+ * workflow: OIDC trusted publishing stages the release on npmjs, and a
+ * maintainer approves it with 2FA before it goes live.
  */
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -36,6 +36,7 @@ rmSync(stageDir, { recursive: true, force: true });
 mkdirSync(stageDir, { recursive: true });
 cpSync(join(pkgDir, "dist"), join(stageDir, "dist"), { recursive: true });
 cpSync(join(pkgDir, "CHANGELOG.md"), join(stageDir, "CHANGELOG.md"));
+cpSync(join(pkgDir, "LICENSE"), join(stageDir, "LICENSE"));
 // Published README stops before maintainer-only packaging notes.
 const readme = readFileSync(join(pkgDir, "README.md"), "utf8");
 const maintainer = readme.indexOf("\n## Packaging (maintainers)\n");
@@ -49,8 +50,8 @@ const publishManifest = {
   description:
     manifest.description ??
     "Typed client for the T3tris API (/v0) plus the on-chain action engine.",
-  // Stay private until LICENSE exists and publishing is explicitly enabled.
-  private: true,
+  private: false,
+  license: "BUSL-1.1",
   type: "module",
   exports: {
     ".": { types: "./dist/index.d.ts", default: "./dist/index.js" },
@@ -69,6 +70,7 @@ const publishManifest = {
   },
   homepage: `${repoUrl}#readme`,
   bugs: { url: `${repoUrl}/issues` },
+  publishConfig: { access: "public" },
   dependencies: manifest.dependencies,
 };
 writeFileSync(join(stageDir, "package.json"), `${JSON.stringify(publishManifest, null, 2)}\n`);

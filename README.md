@@ -11,11 +11,11 @@ Use API credentials on your backend or connect an existing wallet to submit tran
 ## Installation
 
 ```sh
-bun add git+https://github.com/t3tris-finance/sdk.git
+npm install @t3tris/sdk
 ```
 
 The package includes ESM JavaScript and TypeScript declarations. Commit your lockfile
-to keep installations reproducible. The lockfile records the exact SDK commit
+to keep installations reproducible. The lockfile records the exact SDK version
 used by your integration.
 
 ## Client configuration
