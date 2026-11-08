@@ -100,7 +100,7 @@ jobs:
             exit 0
           fi
           echo "$output"
-          if echo "$output" | grep -qiE 'already (staged|exists)'; then
+          if echo "$output" | grep -qiE 'already (staged|exists)|Cannot stage previously published version'; then
             echo "::notice::Version already staged on npm and awaiting approval."
             exit 0
           fi
