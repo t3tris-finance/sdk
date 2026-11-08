@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1
+
+- No runtime changes; released to validate npm trusted publishing.
+
 ## 0.7.0
 
 - API requests and live subscriptions use `/v0`.
