@@ -18,7 +18,7 @@
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "bun@1.4.0",
+  "packageManager": "bun@1.4.4",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/t3tris-finance/sdk.git"
@@ -37,11 +37,11 @@
     "test": "bun test test"
   },
   "dependencies": {
-    "viem": "^2.56.8"
+    "viem": "^2.57.17"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.12",
-    "@types/bun": "1.4.1",
-    "typescript": "5.9.3"
+    "@biomejs/biome": "2.6.6",
+    "@types/bun": "1.4.4",
+    "typescript": "6.0.3"
   }
 }

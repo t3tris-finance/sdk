@@ -56,15 +56,15 @@ own backend. The T3tris API does not allow cross-origin browser requests.
 
 ### Available resources
 
-| Namespace | Resources |
-| --- | --- |
-| `catalog` | Chains, assets and latest USD prices |
-| `vaults` | Vault details, history, composition, activity, governance and content |
-| `accounts` | Portfolios, positions, activity and favorites |
-| `events` | Event history and live subscriptions |
-| `keys` | Vault lookup and key attachments |
-| `billing` | Pricing and usage |
-| `auth` | Wallet authentication with SIWE, sessions and logout |
+| Namespace  | Resources                                                             |
+| ---------- | --------------------------------------------------------------------- |
+| `catalog`  | Chains, assets and latest USD prices                                  |
+| `vaults`   | Vault details, history, composition, activity, governance and content |
+| `accounts` | Portfolios, positions, activity and favorites                         |
+| `events`   | Event history and live subscriptions                                  |
+| `keys`     | Vault lookup and key attachments                                      |
+| `billing`  | Pricing and usage                                                     |
+| `auth`     | Wallet authentication with SIWE, sessions and logout                  |
 
 Vault queries return the vaults attached to your key. Attach them in Curate or use
 `client.keys.attachVault({ vaults: [{ address, chainId }] })` with the `manage` scope.
@@ -226,14 +226,14 @@ Creation does not attach the vault to an API key.
 
 ### On-chain resources
 
-| Namespace | Actions and reads |
-| --- | --- |
-| `vaults` | Creation, deposits, redemptions, requests, claims, settlement, fees, lifecycle and configuration |
-| `vaults.read` | Previews, limits, balances, queued fees and deployment address prediction |
-| `roles` / `roles.read` | Vault permissions, batches, admin transfers and membership |
-| `oracles` / `oracles.read` | Valuations, deviation bounds, permissions and admin transfers |
-| `tokens` | Token approval, allowance and balance |
-| `permit2` | Allowance and nonce reads |
+| Namespace                  | Actions and reads                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| `vaults`                   | Creation, deposits, redemptions, requests, claims, settlement, fees, lifecycle and configuration |
+| `vaults.read`              | Previews, limits, balances, queued fees and deployment address prediction                        |
+| `roles` / `roles.read`     | Vault permissions, batches, admin transfers and membership                                       |
+| `oracles` / `oracles.read` | Valuations, deviation bounds, permissions and admin transfers                                    |
+| `tokens`                   | Token approval, allowance and balance                                                            |
+| `permit2`                  | Allowance and nonce reads                                                                        |
 
 Every on-chain call takes `chainId`. Amounts use raw token units as `bigint`.
 Fee rates use WAD: `10^18` represents 100%.
