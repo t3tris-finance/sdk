@@ -20,7 +20,7 @@ if (pack.exitCode !== 0) process.exit(pack.exitCode);
 const { version } = JSON.parse(readFileSync(join(pkgDir, "package.json"), "utf8")) as {
   version: string;
 };
-const tarball = join(pkgDir, ".pack", `t3tris-sdk-${version}.tgz`);
+const tarball = join(pkgDir, ".pack", `t3tris-labs-sdk-${version}.tgz`);
 const workDir = mkdtempSync(join(tmpdir(), "t3tris-sdk-smoke-"));
 
 function run(cmd: string[], cwd: string, label: string): void {
@@ -42,7 +42,7 @@ function makeFixture(name: string): string {
         name,
         private: true,
         type: "module",
-        dependencies: { "@t3tris/sdk": `file:${tarball}` },
+        dependencies: { "@t3tris-labs/sdk": `file:${tarball}` },
       },
       null,
       2,
@@ -56,12 +56,12 @@ function makeFixture(name: string): string {
 const nodeDir = makeFixture("node");
 writeFileSync(
   join(nodeDir, "main.mjs"),
-  `import { createT3trisClient, SDK_VERSION } from "@t3tris/sdk";
-import { VAULT_SETTLE_ROLE } from "@t3tris/sdk/onchain";
-import * as entities from "@t3tris/sdk/entities";
-import * as wallet from "@t3tris/sdk/onchain";
-import * as compatibleWallet from "@t3tris/sdk/wallet";
-import * as compatibleConstants from "@t3tris/sdk/curate";
+  `import { createT3trisClient, SDK_VERSION } from "@t3tris-labs/sdk";
+import { VAULT_SETTLE_ROLE } from "@t3tris-labs/sdk/onchain";
+import * as entities from "@t3tris-labs/sdk/entities";
+import * as wallet from "@t3tris-labs/sdk/onchain";
+import * as compatibleWallet from "@t3tris-labs/sdk/wallet";
+import * as compatibleConstants from "@t3tris-labs/sdk/curate";
 import { createPublicClient, createWalletClient, custom, encodeAbiParameters } from "viem";
 
 const assert = (ok, msg) => {
@@ -136,17 +136,17 @@ writeFileSync(
   type T3trisClient,
   type UsageSummary,
   type Vault,
-} from "@t3tris/sdk";
-import type { Address, StreamEvent } from "@t3tris/sdk/entities";
-import type { T3trisWalletClient, T3trisWalletOptions } from "@t3tris/sdk";
-import type * as wallet from "@t3tris/sdk/onchain";
+} from "@t3tris-labs/sdk";
+import type { Address, StreamEvent } from "@t3tris-labs/sdk/entities";
+import type { T3trisWalletClient, T3trisWalletOptions } from "@t3tris-labs/sdk";
+import type * as wallet from "@t3tris-labs/sdk/onchain";
 
 const client: T3trisClient = createT3trisClient();
 const page: Promise<Page<Vault>> = client.vaults.list();
 const usage: Promise<UsageSummary> = client.billing.getUsage();
 const pricing: Promise<BillingPricing> = client.billing.getPricing();
 // @ts-expect-error Email credentials are not part of the public SDK
-const credentials: import("@t3tris/sdk").EmailRegisterInput = {};
+const credentials: import("@t3tris-labs/sdk").EmailRegisterInput = {};
 // @ts-expect-error Email login is not a public SDK capability
 client.auth.loginEmail({ email: "test@example.com", password: "example" });
 // @ts-expect-error Email registration is not a public SDK capability
@@ -154,12 +154,12 @@ client.auth.registerEmail({ email: "test@example.com", password: "example" });
 void credentials;
 const attached: Promise<Page<Vault>> = client.keys.listVaults({ limit: 100, cursor: "opaque" });
 declare const connected: T3trisWalletClient;
-const preview: Promise<import("@t3tris/sdk").SettlePreview> = connected.vaults.read.previewSettleAll({chainId: 42161, address: "0x0000000000000000000000000000000000000001"});
+const preview: Promise<import("@t3tris-labs/sdk").SettlePreview> = connected.vaults.read.previewSettleAll({chainId: 42161, address: "0x0000000000000000000000000000000000000001"});
 // @ts-expect-error fullClaim is exclusive to redemption settlement
 connected.vaults.settle({chainId: 42161, address: "0x0000000000000000000000000000000000000001", kind: "both", fullClaim: true});
 // @ts-expect-error feeClaimType is not a redemption option
 connected.vaults.settle({chainId: 42161, address: "0x0000000000000000000000000000000000000001", kind: "redemptions", feeClaimType: 0});
-declare const sharedRef: import("@t3tris/sdk").VaultRef;
+declare const sharedRef: import("@t3tris-labs/sdk").VaultRef;
 connected.vaults.read.isOpen(sharedRef);
 declare const rawAmount: bigint;
 connected.vaults.requestDeposit({ ...sharedRef, amount: rawAmount });
@@ -176,19 +176,19 @@ connected.vaults.read.previewCloseFund(sharedRef);
 // @ts-expect-error synchronous quotes are not exposed
 connected.vaults.read.previewDeposit({ ...sharedRef, amount: rawAmount });
 // @ts-expect-error deployments do not accept a vaultOpened flag
-const deployment: Pick<import("@t3tris/sdk").VaultConfig, "vaultOpened"> = {};
+const deployment: Pick<import("@t3tris-labs/sdk").VaultConfig, "vaultOpened"> = {};
 void deployment;
 // @ts-expect-error the SDK selects the canonical deployment factory
-const factoryInput: Pick<import("@t3tris/sdk").DeployVaultArgs, "factory"> = {};
+const factoryInput: Pick<import("@t3tris-labs/sdk").DeployVaultArgs, "factory"> = {};
 void factoryInput;
-declare const creation: import("@t3tris/sdk").DeployVaultArgs;
+declare const creation: import("@t3tris-labs/sdk").DeployVaultArgs;
 connected.vaults.create(creation);
-const safeOracle: import("@t3tris/sdk").VaultOracleConfig = {safe:true,owner:sharedRef.address,maxDeviationUp:rawAmount,maxDeviationDown:rawAmount};
-const existingOracle: import("@t3tris/sdk").VaultOracleConfig = {address:sharedRef.address};
+const safeOracle: import("@t3tris-labs/sdk").VaultOracleConfig = {safe:true,owner:sharedRef.address,maxDeviationUp:rawAmount,maxDeviationDown:rawAmount};
+const existingOracle: import("@t3tris-labs/sdk").VaultOracleConfig = {address:sharedRef.address};
 // @ts-expect-error oracle variants cannot be combined
-const mixedOracle: import("@t3tris/sdk").VaultOracleConfig = {...safeOracle,address:sharedRef.address};
+const mixedOracle: import("@t3tris-labs/sdk").VaultOracleConfig = {...safeOracle,address:sharedRef.address};
 // @ts-expect-error existing oracles do not take SafeOracle parameters
-const wrongExisting: import("@t3tris/sdk").VaultOracleConfig = {address:sharedRef.address,maxDeviationUp:rawAmount};
+const wrongExisting: import("@t3tris-labs/sdk").VaultOracleConfig = {address:sharedRef.address,maxDeviationUp:rawAmount};
 void [existingOracle,mixedOracle,wrongExisting];
 
 connected.vaults.read.previewAddress({chainId:42161,deployer:sharedRef.address,salt:"0x00"});
@@ -234,9 +234,9 @@ for (const resolution of ["NodeNext", "Bundler"]) {
 const browserDir = makeFixture("browser");
 writeFileSync(
   join(browserDir, "entry.ts"),
-  `export { createT3trisClient } from "@t3tris/sdk";
-export { VAULT_SETTLE_ROLE } from "@t3tris/sdk/onchain";
-export * as wallet from "@t3tris/sdk/onchain";
+  `export { createT3trisClient } from "@t3tris-labs/sdk";
+export { VAULT_SETTLE_ROLE } from "@t3tris-labs/sdk/onchain";
+export * as wallet from "@t3tris-labs/sdk/onchain";
 `,
 );
 const bundle = await Bun.build({

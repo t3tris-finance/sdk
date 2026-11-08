@@ -11,7 +11,7 @@ Use API credentials on your backend or connect an existing wallet to submit tran
 ## Installation
 
 ```sh
-npm install @t3tris/sdk
+npm install @t3tris-labs/sdk
 ```
 
 The package includes ESM JavaScript and TypeScript declarations. Commit your lockfile
@@ -25,11 +25,11 @@ operations. Configuration selects the capabilities of each instance. Keep API
 clients on your server and wallet clients in the wallet-connected application.
 
 Protocol constants, deployment types, Permit2 helpers and optional provider
-discovery are available from `@t3tris/sdk/onchain`:
+discovery are available from `@t3tris-labs/sdk/onchain`:
 
 ```ts
-import { createT3trisClient } from "@t3tris/sdk";
-import { VAULT_SETTLE_ROLE, defaultSafeOracle } from "@t3tris/sdk/onchain";
+import { createT3trisClient } from "@t3tris-labs/sdk";
+import { VAULT_SETTLE_ROLE, defaultSafeOracle } from "@t3tris-labs/sdk/onchain";
 ```
 
 ## Read vault data
@@ -38,7 +38,7 @@ Create an API key in [T3tris Curate](https://curate.t3tris.finance/premium), the
 configure the client on your server:
 
 ```ts
-import { createT3trisClient } from "@t3tris/sdk";
+import { createT3trisClient } from "@t3tris-labs/sdk";
 
 const client = createT3trisClient({
   apiKey: process.env.T3TRIS_API_KEY,
@@ -111,7 +111,7 @@ attachments share your organization's existing subscription quotas.
 Pass your connected viem or wagmi clients directly:
 
 ```ts
-import { createT3trisClient } from "@t3tris/sdk";
+import { createT3trisClient } from "@t3tris-labs/sdk";
 
 const client = createT3trisClient({ walletClient, publicClient });
 

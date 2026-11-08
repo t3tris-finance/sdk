@@ -1,2 +1,2 @@
-/** @deprecated Import protocol constants from @t3tris/sdk/onchain. */
+/** @deprecated Import protocol constants from @t3tris-labs/sdk/onchain. */
 export * from "../onchain/constants.js";

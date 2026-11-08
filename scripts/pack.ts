@@ -81,4 +81,4 @@ const pack = Bun.spawnSync(["npm", "pack"], {
   stderr: "inherit",
 });
 if (pack.exitCode !== 0) process.exit(pack.exitCode);
-console.log(`staged ${stageDir} -> t3tris-sdk-${manifest.version}.tgz`);
+console.log(`staged ${stageDir} -> t3tris-labs-sdk-${manifest.version}.tgz`);

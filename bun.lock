@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@t3tris/sdk",
+      "name": "@t3tris-labs/sdk",
       "dependencies": {
         "viem": "^2.56.8",
       },

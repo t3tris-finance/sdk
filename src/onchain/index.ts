@@ -1,4 +1,4 @@
-/** Optional protocol helpers. All actions use createT3trisClient from @t3tris/sdk. */
+/** Optional protocol helpers. All actions use createT3trisClient from @t3tris-labs/sdk. */
 
 export * from "./constants";
 export {

@@ -4,7 +4,7 @@
  * Env: T3TRIS_API_KEY (`sk_…` with `stream`).
  * Ctrl+C to stop.
  */
-import { createT3trisClient } from "@t3tris/sdk";
+import { createT3trisClient } from "@t3tris-labs/sdk";
 
 const VAULT = {
   chainId: 42161,

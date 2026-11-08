@@ -157,7 +157,7 @@ export interface VaultRoleAdmin {
 }
 /** Indexed governance for one vault: role assignments, admin edges, whitelist
  * rows, and the depositor count. Returned by `vaults.getGovernance`
- * (`public` scope). On-chain role changes are sent with `@t3tris/sdk/curate`,
+ * (`public` scope). On-chain role changes are sent with `@t3tris-labs/sdk/curate`,
  * not written through this read. */
 export interface VaultGovernance {
     roles: VaultRoleAssignment[];

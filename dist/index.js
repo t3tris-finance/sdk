@@ -1,5 +1,5 @@
 /**
- * @t3tris/sdk — public SDK.
+ * @t3tris-labs/sdk — public SDK.
  *
  * One constructor for server-side API access and explicit on-chain actions.
  * Typed entities, transaction results and protocol helpers.

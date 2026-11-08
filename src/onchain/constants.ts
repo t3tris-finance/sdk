@@ -1,4 +1,4 @@
-/** Protocol constants and types. Construct all clients with createT3trisClient from @t3tris/sdk. */
+/** Protocol constants and types. Construct all clients with createT3trisClient from @t3tris-labs/sdk. */
 
 export {
   ORACLE_ADMIN_SET_MAX_PPS_DEVIATION_DOWN_ROLE,
