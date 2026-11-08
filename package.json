@@ -4,6 +4,7 @@
   "description": "Typed T3tris API and explicit on-chain actions through one client.",
   "type": "module",
   "private": true,
+  "license": "BUSL-1.1",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

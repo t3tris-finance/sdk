@@ -1,11 +1,14 @@
 name: Publish
 
-# Publishes @t3tris/sdk to npmjs after a merge to main.
+# Stages @t3tris/sdk on npmjs after a merge to main. Publication uses OIDC
+# trusted publishing (no long-lived npm token) and the staged flow: each
+# release waits in the staging area until a maintainer approves it with 2FA
+# on npmjs.com (Staged Packages tab) or with `npm stage approve <stage-id>`.
 #
-# DISABLED. The job condition is hard-off, so a merge cannot publish.
-# npmjs credentials are not configured, the staged manifest stays private,
-# and the package has no license. Enabling publication requires a separate
-# reviewed change covering licensing, package metadata, and registry credentials.
+# Requires a trusted publisher in the package settings on npmjs.com:
+# GitHub Actions, org t3tris-finance, repository sdk, workflow publish.yml,
+# action "npm stage publish". A version already on npm is skipped, so merges
+# without a version bump stay green.
 
 on:
   push:
@@ -14,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write # OIDC token for npm trusted publishing
 
 concurrency:
   group: publish-${{ github.ref }}
@@ -21,9 +25,7 @@ concurrency:
 
 jobs:
   publish:
-    name: Publish to npmjs (disabled)
-    # Keep this false until publishing is explicitly approved.
-    if: ${{ false }}
+    name: Stage publish to npmjs
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -69,8 +71,22 @@ jobs:
           }
           EOF
 
-      - name: Publish to npmjs
+      - name: npm CLI with staged publishing support
+        run: |
+          npm install --global npm@latest
+          npm --version
+
+      - name: Skip when the version is already published
+        id: published
         working-directory: .pack
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if npm view "@t3tris/sdk@$version" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "@t3tris/sdk@$version is already on npm, skipping."
+          fi
+
+      - name: Stage publish to npmjs
+        if: steps.published.outputs.exists != 'true'
+        working-directory: .pack
+        run: npm stage publish
