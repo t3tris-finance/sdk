@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.8.0
+
+### Breaking changes
+
+- Remove the deprecated `@t3tris-labs/sdk/curate` and
+  `@t3tris-labs/sdk/wallet` entry points and their compatibility files.
+  Import constants and provider helpers from `@t3tris-labs/sdk/onchain`.
+  Import `createT3trisClient`, wallet client types and transaction results
+  from `@t3tris-labs/sdk`. `/entities` remains available for entity types.
+- Git source checkouts no longer contain compiled `dist/` files. Install the
+  published npm package for Node.js applications, not a Git dependency.
+
+### Packaging
+
+- The private development manifest resolves TypeScript sources. The npm
+  manifest is generated separately and exports only built ESM JavaScript
+  with TypeScript declarations, plus package metadata.
+- Build the distribution from scratch for every package. Validate the actual
+  tarball under Node.js 22/24/26, NodeNext/Bundler type resolution and browser
+  bundling; reject removed subpaths and accidental source/compat files.
+- API `/v0`, the unified client and existing action behavior are unchanged.
+
 ## 0.7.1
 
 - No runtime changes; released to validate npm trusted publishing.

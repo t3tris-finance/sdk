@@ -60,8 +60,7 @@ writeFileSync(
 import { VAULT_SETTLE_ROLE } from "@t3tris-labs/sdk/onchain";
 import * as entities from "@t3tris-labs/sdk/entities";
 import * as wallet from "@t3tris-labs/sdk/onchain";
-import * as compatibleWallet from "@t3tris-labs/sdk/wallet";
-import * as compatibleConstants from "@t3tris-labs/sdk/curate";
+import manifest from "@t3tris-labs/sdk/package.json" with { type: "json" };
 import { createPublicClient, createWalletClient, custom, encodeAbiParameters } from "viem";
 
 const assert = (ok, msg) => {
@@ -78,8 +77,22 @@ assert(typeof SDK_VERSION === "string" && SDK_VERSION.length > 0, "SDK_VERSION e
 assert(wallet.execute === undefined, "no implicit workflow executor");
 assert(VAULT_SETTLE_ROLE !== undefined, "protocol role constants export");
 assert(Object.keys(wallet).length > 0, "onchain exports");
-assert(compatibleWallet.ChainMismatchError === wallet.ChainMismatchError, "shared wallet error constructor");
-assert(compatibleConstants.VAULT_SETTLE_ROLE === VAULT_SETTLE_ROLE, "shared role constant");
+assert(SDK_VERSION === "${version}", "SDK_VERSION matches release");
+assert(manifest.private === false, "published manifest is public");
+assert(JSON.stringify(Object.keys(manifest.exports).sort()) === JSON.stringify([".", "./entities", "./onchain", "./package.json"]), "exact published export map");
+for (const [subpath, entry] of Object.entries(manifest.exports)) {
+  if (subpath === "./package.json") continue;
+  assert(entry.default.endsWith(".js") && entry.default.startsWith("./dist/"), "Node entry is built JavaScript");
+  assert(entry.types.endsWith(".d.ts") && entry.types.startsWith("./dist/"), "published type declarations");
+  assert(import.meta.resolve(subpath === "." ? "@t3tris-labs/sdk" : "@t3tris-labs/sdk" + subpath.slice(1)).endsWith(".js"), "Node resolves JavaScript only");
+}
+for (const subpath of ["curate", "wallet", "dist/index.js"]) {
+  let blocked = false;
+  try { await import("@t3tris-labs/sdk/" + subpath); }
+  catch (error) { blocked = error.code === "ERR_PACKAGE_PATH_NOT_EXPORTED"; }
+  assert(blocked, "removed or private subpath is inaccessible: " + subpath);
+}
+assert(wallet.ChainMismatchError === (await import("@t3tris-labs/sdk")).ChainMismatchError, "shared error constructor");
 
 delete process.env.T3TRIS_API_URL;
 const urls = [];
@@ -140,6 +153,10 @@ writeFileSync(
 import type { Address, StreamEvent } from "@t3tris-labs/sdk/entities";
 import type { T3trisWalletClient, T3trisWalletOptions } from "@t3tris-labs/sdk";
 import type * as wallet from "@t3tris-labs/sdk/onchain";
+// @ts-expect-error removed in 0.8.0; use /onchain
+import type * as removedWallet from "@t3tris-labs/sdk/wallet";
+// @ts-expect-error removed in 0.8.0; use /onchain
+import type * as removedCurate from "@t3tris-labs/sdk/curate";
 
 const client: T3trisClient = createT3trisClient();
 const page: Promise<Page<Vault>> = client.vaults.list();

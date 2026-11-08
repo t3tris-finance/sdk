@@ -33,7 +33,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.4.0"
+          bun-version: "1.4.4"
 
       - name: Install
         run: bun install --frozen-lockfile
@@ -41,17 +41,11 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      - name: Verify committed distribution
-        run: |
-          bun run build
-          git diff --exit-code -- dist
-          test -z "$(git ls-files --others --exclude-standard dist)"
-
       - name: Typecheck
         run: bun run typecheck
 
       - name: Test
         run: bun run test
 
-      - name: Smoke (pack and install the tarball)
+      - name: Smoke (build, pack and install the tarball)
         run: bun run smoke

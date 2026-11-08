@@ -3,7 +3,7 @@
 A TypeScript client for T3tris vault data and on-chain actions.
 Use API credentials on your backend or connect an existing wallet to submit transactions.
 
-> **Unstable API and SDK:** SDK **0.7.0** targets API **`/v0`**. Breaking changes
+> **Unstable API and SDK:** SDK **0.8.0** targets API **`/v0`**. Breaking changes
 > may occur before API `/v1` and SDK `1.0.0`. Pin your SDK version and review the
 > changelog before upgrading. Pinning the SDK does not freeze the API server;
 > server changes can also require integration updates.
@@ -56,15 +56,15 @@ own backend. The T3tris API does not allow cross-origin browser requests.
 
 ### Available resources
 
-| Namespace | Resources |
-| --- | --- |
-| `catalog` | Chains, assets and latest USD prices |
-| `vaults` | Vault details, history, composition, activity, governance and content |
-| `accounts` | Portfolios, positions, activity and favorites |
-| `events` | Event history and live subscriptions |
-| `keys` | Vault lookup and key attachments |
-| `billing` | Pricing and usage |
-| `auth` | Wallet authentication with SIWE, sessions and logout |
+| Namespace  | Resources                                                             |
+| ---------- | --------------------------------------------------------------------- |
+| `catalog`  | Chains, assets and latest USD prices                                  |
+| `vaults`   | Vault details, history, composition, activity, governance and content |
+| `accounts` | Portfolios, positions, activity and favorites                         |
+| `events`   | Event history and live subscriptions                                  |
+| `keys`     | Vault lookup and key attachments                                      |
+| `billing`  | Pricing and usage                                                     |
+| `auth`     | Wallet authentication with SIWE, sessions and logout                  |
 
 Vault queries return the vaults attached to your key. Attach them in Curate or use
 `client.keys.attachVault({ vaults: [{ address, chainId }] })` with the `manage` scope.
@@ -226,14 +226,14 @@ Creation does not attach the vault to an API key.
 
 ### On-chain resources
 
-| Namespace | Actions and reads |
-| --- | --- |
-| `vaults` | Creation, deposits, redemptions, requests, claims, settlement, fees, lifecycle and configuration |
-| `vaults.read` | Previews, limits, balances, queued fees and deployment address prediction |
-| `roles` / `roles.read` | Vault permissions, batches, admin transfers and membership |
-| `oracles` / `oracles.read` | Valuations, deviation bounds, permissions and admin transfers |
-| `tokens` | Token approval, allowance and balance |
-| `permit2` | Allowance and nonce reads |
+| Namespace                  | Actions and reads                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| `vaults`                   | Creation, deposits, redemptions, requests, claims, settlement, fees, lifecycle and configuration |
+| `vaults.read`              | Previews, limits, balances, queued fees and deployment address prediction                        |
+| `roles` / `roles.read`     | Vault permissions, batches, admin transfers and membership                                       |
+| `oracles` / `oracles.read` | Valuations, deviation bounds, permissions and admin transfers                                    |
+| `tokens`                   | Token approval, allowance and balance                                                            |
+| `permit2`                  | Allowance and nonce reads                                                                        |
 
 Every on-chain call takes `chainId`. Amounts use raw token units as `bigint`.
 Fee rates use WAD: `10^18` represents 100%.
@@ -262,7 +262,6 @@ when a contract revert can be decoded. Transactions are never retried automatica
 Requires Node.js 22+ or Bun, including live subscriptions. Browser wallet
 integrations require an ESM-compatible bundler such as Next.js or Vite.
 
-SDK development uses Node.js 26 LTS (`.nvmrc`); CI checks Node.js 22, 24 and 26.
 No wagmi or RainbowKit dependency is required for wallet integration.
 
 [Interactive examples](https://github.com/t3tris-finance/playground) ·

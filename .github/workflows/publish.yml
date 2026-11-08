@@ -1,6 +1,8 @@
 name: Publish
 
-# Stages @t3tris-labs/sdk on npmjs after a merge to main. Publication uses OIDC
+# Automatically stages after merging a PR labeled exactly "publish" into main.
+# Manual dispatch on main explicitly authorizes tagging and staging without a label.
+# Other pushes do not build, tag or stage a release. Publication uses OIDC
 # trusted publishing (no long-lived npm token) and the staged flow: each
 # release waits in the staging area until a maintainer approves it with 2FA
 # on npmjs.com (Staged Packages tab) or with `npm stage approve <stage-id>`.
@@ -15,7 +17,8 @@ name: Publish
 # green.
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches: [main]
   workflow_dispatch:
 
@@ -29,14 +32,20 @@ concurrency:
 jobs:
   build:
     name: Test / pack / smoke
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'publish'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.4.0"
+          bun-version: "1.4.4"
 
       - uses: actions/setup-node@v4
         with:
@@ -82,9 +91,33 @@ jobs:
           include-hidden-files: true
           retention-days: 7
 
+  tag:
+    name: Tag the release commit
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+          fetch-depth: 0
+      - name: Create version tag
+        run: |
+          tag="v$(node -p "JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version")"
+          if git show-ref --verify --quiet "refs/tags/$tag"; then
+            test "$(git rev-parse "$tag^{commit}")" = "$(git rev-parse HEAD)" || {
+              echo "::error::$tag already points to a different commit"
+              exit 1
+            }
+          else
+            git tag "$tag"
+            git push origin "refs/tags/$tag"
+          fi
+
   publish:
     name: Stage publish to npmjs
-    needs: build
+    needs: [build, tag]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
