@@ -17,7 +17,8 @@ name: Publish
 # green.
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches: [main]
   workflow_dispatch:
 
@@ -29,51 +30,18 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  eligibility:
-    name: Require publish label or manual dispatch
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
-    outputs:
-      publish: ${{ steps.pr.outputs.publish }}
-    steps:
-      - uses: actions/github-script@v7
-        id: pr
-        with:
-          script: |
-            if (context.eventName === "workflow_dispatch") {
-              core.setOutput("publish", "true");
-              core.info("Manual dispatch on main authorizes tagging and staging.");
-              return;
-            }
-            const prs = await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-              per_page: 100,
-            });
-            const eligible = prs.some(pr =>
-              pr.merged_at !== null &&
-              pr.base.ref === "main" &&
-              pr.base.repo.full_name === `${context.repo.owner}/${context.repo.repo}` &&
-              pr.merge_commit_sha === context.sha &&
-              pr.labels.some(label => label.name === "publish")
-            );
-            core.setOutput("publish", String(eligible));
-            core.info(eligible ? "Merged PR has publish label." : "No labeled merged PR for this commit; skipping staging.");
-
   build:
     name: Test / pack / smoke
-    needs: eligibility
-    if: needs.eligibility.outputs.publish == 'true'
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'publish'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -130,37 +98,22 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
         with:
-          name: npm-package
-          path: .pack
-      - uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require("node:fs");
-            const { version } = JSON.parse(fs.readFileSync(".pack/package.json", "utf8"));
-            if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error("Expected a stable package version");
-            const tag = `v${version}`;
-            const repo = { owner: context.repo.owner, repo: context.repo.repo };
-            let existing;
-            try {
-              existing = await github.rest.git.getRef({ ...repo, ref: `tags/${tag}` });
-            } catch (error) {
-              if (error.status !== 404) throw error;
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+          fetch-depth: 0
+      - name: Create version tag
+        run: |
+          tag="v$(node -p "JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version")"
+          if git show-ref --verify --quiet "refs/tags/$tag"; then
+            test "$(git rev-parse "$tag^{commit}")" = "$(git rev-parse HEAD)" || {
+              echo "::error::$tag already points to a different commit"
+              exit 1
             }
-            if (existing) {
-              let object = existing.data.object;
-              while (object.type === "tag") {
-                object = (await github.rest.git.getTag({ ...repo, tag_sha: object.sha })).data.object;
-              }
-              if (object.type !== "commit" || object.sha !== context.sha) {
-                throw new Error(`${tag} already points to a different commit; refusing to move it`);
-              }
-              core.info(`${tag} already points to ${context.sha}`);
-            } else {
-              await github.rest.git.createRef({ ...repo, ref: `refs/tags/${tag}`, sha: context.sha });
-              core.info(`Created ${tag} at ${context.sha}`);
-            }
+          else
+            git tag "$tag"
+            git push origin "refs/tags/$tag"
+          fi
 
   publish:
     name: Stage publish to npmjs
