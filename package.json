@@ -1,31 +1,15 @@
 {
   "name": "@t3tris-labs/sdk",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "Typed T3tris API and explicit on-chain actions through one client.",
   "type": "module",
   "private": true,
   "license": "BUSL-1.1",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "./onchain": {
-      "types": "./dist/onchain/index.d.ts",
-      "default": "./dist/onchain/index.js"
-    },
-    "./curate": {
-      "types": "./dist/compat/curate.d.ts",
-      "default": "./dist/compat/curate.js"
-    },
-    "./entities": {
-      "types": "./dist/entities/index.d.ts",
-      "default": "./dist/entities/index.js"
-    },
-    "./wallet": {
-      "types": "./dist/compat/wallet.d.ts",
-      "default": "./dist/compat/wallet.js"
-    }
+    ".": "./src/index.ts",
+    "./onchain": "./src/onchain/index.ts",
+    "./entities": "./src/entities/index.ts",
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"

@@ -37,11 +37,7 @@ mkdirSync(stageDir, { recursive: true });
 cpSync(join(pkgDir, "dist"), join(stageDir, "dist"), { recursive: true });
 cpSync(join(pkgDir, "CHANGELOG.md"), join(stageDir, "CHANGELOG.md"));
 cpSync(join(pkgDir, "LICENSE"), join(stageDir, "LICENSE"));
-// Published README stops before maintainer-only packaging notes.
-const readme = readFileSync(join(pkgDir, "README.md"), "utf8");
-const maintainer = readme.indexOf("\n## Packaging (maintainers)\n");
-const publishedReadme = maintainer === -1 ? readme : readme.slice(0, maintainer);
-writeFileSync(join(stageDir, "README.md"), `${publishedReadme.trimEnd()}\n`);
+cpSync(join(pkgDir, "README.md"), join(stageDir, "README.md"));
 
 const repoUrl = "https://github.com/t3tris-finance/sdk";
 const publishManifest = {
@@ -57,8 +53,6 @@ const publishManifest = {
     ".": { types: "./dist/index.d.ts", default: "./dist/index.js" },
     "./entities": { types: "./dist/entities/index.d.ts", default: "./dist/entities/index.js" },
     "./onchain": { types: "./dist/onchain/index.d.ts", default: "./dist/onchain/index.js" },
-    "./curate": { types: "./dist/compat/curate.d.ts", default: "./dist/compat/curate.js" },
-    "./wallet": { types: "./dist/compat/wallet.d.ts", default: "./dist/compat/wallet.js" },
     "./package.json": "./package.json",
   },
   files: ["dist", "CHANGELOG.md"],
