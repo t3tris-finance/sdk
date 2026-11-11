@@ -101,6 +101,24 @@ describe("createCurate actions", () => {
     });
   });
 
+  test.each([0, 86_400, 2 ** 48 - 1])(
+    "oracle.defaultAdminDelay normalizes uint48 %s to the public bigint result",
+    async (delay) => {
+      const { clients } = fakeClients();
+      const output = encodeAbiParameters([{ type: "uint48" }], [delay]);
+      const curate = createT3trisClient({
+        ...clients,
+        publicClient: { ...clients.publicClient, call: async () => ({ data: output }) },
+      });
+      const result = await curate.oracles.read.defaultAdminDelay({
+        oracle: ORACLE,
+        chainId: 42161,
+      });
+      expect(typeof result).toBe("bigint");
+      expect(result).toBe(BigInt(delay));
+    },
+  );
+
   test("vault.setDepositEnabled sends the encoded selector to the vault", async () => {
     const { sent, clients } = fakeClients();
     const curate = createT3trisClient(clients);

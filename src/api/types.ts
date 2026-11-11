@@ -138,7 +138,8 @@ export interface T3trisClient {
      * ends on `signal` abort or a clean close, throws ApiError on an auth
      * denial. `onProgress` reports the acknowledged server cursor (it advances
      * across filtered rows) — persist it to resume later subscriptions.
-     * `onReady` fires once the first server replay/watermark is established.
+     * `onReady` fires when the first server replay/watermark is established on
+     * each connection, including connections opened after automatic reconnect.
      * Progress can precede asynchronous processing: commit a durable checkpoint
      * only after all preceding delivered events have been applied. */
     subscribe(

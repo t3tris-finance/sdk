@@ -104,13 +104,15 @@ export function makeOracleActions(clients: OnchainClients) {
           args: [],
         })
       )[0],
-    defaultAdminDelay: async (i: { oracle: Address }) =>
-      (
-        await readCall<readonly [bigint]>(curateOracle.defaultAdminDelay, clients.publicClient, {
-          address: i.oracle,
-          args: [],
-        })
-      )[0],
+    defaultAdminDelay: async (i: { oracle: Address }) => {
+      const [delay] = await readCall<readonly [number]>(
+        curateOracle.defaultAdminDelay,
+        clients.publicClient,
+        { address: i.oracle, args: [] },
+      );
+      // viem decodes uint48 as number; preserve this method's public bigint contract.
+      return BigInt(delay);
+    },
     pendingAdmin: async (i: { oracle: Address }) => {
       const [pending, delay] = await readCall<readonly [Address, number]>(
         curateOracle.pendingAdmin,

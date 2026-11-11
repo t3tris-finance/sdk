@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Normalize `oracles.read.defaultAdminDelay` from its decoded uint48 number
+  to the documented bigint seconds result.
+- Clarify that stream `onReady` runs once per connection, including reconnects,
+  rather than only once per subscription.
+
 ## 0.8.0
 
 ### Breaking changes
