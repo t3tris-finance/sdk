@@ -101,6 +101,24 @@ describe("createCurate actions", () => {
     });
   });
 
+  test.each([0, 86_400, 2 ** 48 - 1])(
+    "oracle.defaultAdminDelay decodes uint48 %s as exact number seconds",
+    async (delay) => {
+      const { clients } = fakeClients();
+      const output = encodeAbiParameters([{ type: "uint48" }], [delay]);
+      const curate = createT3trisClient({
+        ...clients,
+        publicClient: { ...clients.publicClient, call: async () => ({ data: output }) },
+      });
+      const result = await curate.oracles.read.defaultAdminDelay({
+        oracle: ORACLE,
+        chainId: 42161,
+      });
+      expect(typeof result).toBe("number");
+      expect(result).toBe(delay);
+    },
+  );
+
   test("vault.setDepositEnabled sends the encoded selector to the vault", async () => {
     const { sent, clients } = fakeClients();
     const curate = createT3trisClient(clients);

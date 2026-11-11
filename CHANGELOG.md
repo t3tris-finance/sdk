@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Breaking type correction: `oracles.read.defaultAdminDelay` now declares
+  `Promise<number>` seconds, matching viem's uint48 decoding and the existing
+  0.8.0 runtime behavior. Consumers expecting bigint must update their types;
+  the SDK does not convert the decoded number.
+- Clarify that stream `onReady` runs once per connection, including reconnects,
+  rather than only once per subscription.
+
 ## 0.8.0
 
 ### Breaking changes

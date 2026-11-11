@@ -106,7 +106,7 @@ export function makeOracleActions(clients: OnchainClients) {
       )[0],
     defaultAdminDelay: async (i: { oracle: Address }) =>
       (
-        await readCall<readonly [bigint]>(curateOracle.defaultAdminDelay, clients.publicClient, {
+        await readCall<readonly [number]>(curateOracle.defaultAdminDelay, clients.publicClient, {
           address: i.oracle,
           args: [],
         })
