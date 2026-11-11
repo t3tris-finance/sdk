@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.8.1
 
 - Breaking type correction: `oracles.read.defaultAdminDelay` now declares
   `Promise<number>` seconds, matching viem's uint48 decoding and the existing
