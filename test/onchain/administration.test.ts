@@ -102,7 +102,7 @@ describe("createCurate actions", () => {
   });
 
   test.each([0, 86_400, 2 ** 48 - 1])(
-    "oracle.defaultAdminDelay normalizes uint48 %s to the public bigint result",
+    "oracle.defaultAdminDelay decodes uint48 %s as exact number seconds",
     async (delay) => {
       const { clients } = fakeClients();
       const output = encodeAbiParameters([{ type: "uint48" }], [delay]);
@@ -114,8 +114,8 @@ describe("createCurate actions", () => {
         oracle: ORACLE,
         chainId: 42161,
       });
-      expect(typeof result).toBe("bigint");
-      expect(result).toBe(BigInt(delay));
+      expect(typeof result).toBe("number");
+      expect(result).toBe(delay);
     },
   );
 
