@@ -29,7 +29,8 @@ export function createOnchainClient(options: WalletOptions) {
     const transport = custom(options.provider);
     clients = {
       walletClient: createWalletClient({ account: options.account, transport }),
-      publicClient: createPublicClient({ transport }),
+      // Contract reverts must not initiate HTTP requests outside the RPC transport.
+      publicClient: createPublicClient({ transport, ccipRead: false }),
     };
   } else {
     clients = { walletClient: options.walletClient, publicClient: options.publicClient };
