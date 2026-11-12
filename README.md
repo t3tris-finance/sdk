@@ -3,7 +3,7 @@
 A TypeScript client for T3tris vault data and on-chain actions.
 Use API credentials on your backend or connect an existing wallet to submit transactions.
 
-> **Unstable API and SDK:** SDK **0.8.1** targets API **`/v0`**. Breaking changes
+> **Unstable API and SDK:** SDK **0.8.2** targets API **`/v0`**. Breaking changes
 > may occur before API `/v1` and SDK `1.0.0`. Pin your SDK version and review the
 > changelog before upgrading. Pinning the SDK does not freeze the API server;
 > server changes can also require integration updates.
@@ -108,11 +108,18 @@ attachments share your organization's existing subscription quotas.
 
 ## Submit an on-chain action
 
-Pass your connected viem or wagmi clients directly:
+Pass your connected wallet client and a public client configured with
+`ccipRead: false`. For example, construct the public client from your existing
+provider without changing its RPC transport:
 
 ```ts
 import { createT3trisClient } from "@t3tris-labs/sdk";
+import { createPublicClient, custom } from "viem";
 
+const publicClient = createPublicClient({
+  transport: custom(provider),
+  ccipRead: false,
+});
 const client = createT3trisClient({ walletClient, publicClient });
 
 const result = await client.vaults.setNextEntryFee({
@@ -129,6 +136,24 @@ before invoking an action. Recreate the client when the selected account changes
 Each write checks the wallet and RPC network, simulates the transaction and submits
 it once. It does not switch networks, approve tokens, sign permits, claim shares,
 retry or wait for a receipt as a side effect.
+
+### On-chain networking policy
+
+In provider mode, the SDK disables viem's CCIP Read for all contract reads and
+transaction simulations. A contract's `OffchainLookup` revert rejects the call
+instead of fetching its URLs. Errors are propagated; the SDK does not substitute
+a zero balance or other fallback result. Contracts that require CCIP Read are not
+supported in this mode.
+
+**Injected public clients remain integrator-owned.** The SDK calls their `call`
+implementation unchanged: it cannot enforce networking policy inside an arbitrary
+client or override custom fetch hooks. Configure injected viem clients with
+`ccipRead: false` at construction, including clients supplied through wagmi.
+Custom adapters must reject `OffchainLookup` without following contract-supplied
+URLs. Upgrading the SDK alone does not secure an unsafe injected client.
+
+This policy does not block the explicitly configured RPC transport or application
+requests. API-mode clients are unaffected and never perform these on-chain calls.
 
 The result is `{ status, hash }`:
 

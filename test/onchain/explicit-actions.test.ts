@@ -201,7 +201,7 @@ describe("explicit wallet actions", () => {
     const transport = custom(provider);
     const direct = createT3trisClient({
       walletClient: createWalletClient({ account, transport }),
-      publicClient: createPublicClient({ transport }),
+      publicClient: createPublicClient({ transport, ccipRead: false }),
     });
     const raw = createT3trisClient({ provider, account });
     expect(typeof direct.vaults.create).toBe("function");

@@ -123,7 +123,7 @@ const provider = { request: async ({ method }) => {
 const transport = custom(provider);
 const connected = createT3trisClient({
   walletClient: createWalletClient({ account, transport }),
-  publicClient: createPublicClient({ transport }),
+  publicClient: createPublicClient({ transport, ccipRead: false }),
 });
 const raw = createT3trisClient({ provider, account });
 assert(methods.length === 0, "constructors must not connect or perform IO");

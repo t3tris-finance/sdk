@@ -22,6 +22,11 @@ export interface WalletClientSource {
   sendTransaction(args: { account: Address; to: Address; data: Hex; chain: null }): Promise<Hex>;
 }
 
+/**
+ * Integrator-owned RPC client. Its call implementation must disable CCIP Read
+ * (viem: createPublicClient({ ..., ccipRead: false })); the SDK cannot enforce
+ * networking policy inside an arbitrary injected implementation.
+ */
 export interface PublicClientSource {
   getChainId(): Promise<number>;
   call(args: {

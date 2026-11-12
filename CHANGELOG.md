@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.8.2
+
+- Disable contract-directed CCIP Read in SDK-created provider clients for both
+  reads and transaction simulations. `OffchainLookup` now rejects without making
+  an offchain HTTP request; failures do not become fallback balances.
+- Injected public clients are not modified. Integrators must construct viem
+  clients with `ccipRead: false` and ensure custom adapters reject
+  `OffchainLookup` without fetching contract-supplied URLs. Updating the SDK alone
+  does not harden an unsafe injected client. API-mode clients are unaffected.
+
 ## 0.8.1
 
 - Breaking type correction: `oracles.read.defaultAdminDelay` now declares
